@@ -1,0 +1,65 @@
+name: brightmind_kids
+description: "BrightMind Kids — Play. Color. Grow. A coloring + brain-games app for ages 2–8."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management — Flutter's recommended modern approach (compile-safe, testable).
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navigation — declarative, deep-link friendly.
+  go_router: ^14.6.2
+
+  # Localization / formatting.
+  intl: ^0.20.2
+
+  # Local persistence (no backend in Phase 1). Hive CE is the maintained community fork.
+  hive_ce: ^2.7.0
+  hive_ce_flutter: ^2.2.0
+
+  # Typography & monetization.
+  google_fonts: ^6.2.1
+  purchases_flutter: ^8.4.0   # RevenueCat
+
+  # Audio (pooled SFX) & vector animation.
+  audioplayers: ^6.1.0
+  rive: ^0.13.20
+
+  # Misc.
+  path_provider: ^2.1.5
+  equatable: ^2.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+  custom_lint: ^0.7.0
+  riverpod_lint: ^2.6.3
+
+  # Codegen.
+  build_runner: ^2.4.13
+  riverpod_generator: ^2.6.3
+  hive_ce_generator: ^1.8.0
+
+flutter:
+  uses-material-design: true
+  generate: true   # enables gen-l10n (synthetic localizations package)
+
+  assets:
+    - assets/coloring_pages/
+    - assets/audio/
+    - assets/rive/
+    - assets/images/

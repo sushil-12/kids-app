@@ -1,0 +1,86 @@
+{
+  "@@locale": "en",
+  "appName": "BrightMind Kids",
+  "@appName": { "description": "Application name" },
+
+  "tagline": "Play. Color. Grow.",
+  "onboardingGreeting": "Hi there! 👋",
+  "onboardingSubtitle": "Let's set up for your little one",
+  "childNameHint": "Child's name (optional)",
+  "ageQuestion": "How old are they?",
+  "ageBand24": "2–4 years",
+  "ageBand56": "5–6 years",
+  "pickBuddy": "Pick a buddy!",
+  "letsGo": "Let's Go! 🚀",
+
+  "homeGreeting": "Hi {name}!",
+  "@homeGreeting": {
+    "description": "Greeting on the home screen",
+    "placeholders": { "name": { "type": "String", "example": "Maya" } }
+  },
+  "tileColor": "Color!",
+  "tileColorSubtitle": "{count} fun pages",
+  "@tileColorSubtitle": {
+    "placeholders": { "count": { "type": "int", "example": "60" } }
+  },
+  "tilePlay": "Play!",
+  "tilePlaySubtitle": "{count} brain games",
+  "@tilePlaySubtitle": {
+    "placeholders": { "count": { "type": "int", "example": "5" } }
+  },
+  "stickerRoom": "My Sticker Room",
+
+  "galleryTitle": "Pick a page!",
+  "categoryAnimals": "Animals",
+  "categoryVehicles": "Vehicles",
+  "categoryNature": "Nature",
+  "categoryShapes": "Shapes",
+  "categoryDoodle": "Doodle Art",
+
+  "celebrationTitle": "Amazing!",
+  "newStickerEarned": "New sticker earned!",
+  "playRelatedGame": "Play a {subject} game!",
+  "@playRelatedGame": {
+    "placeholders": { "subject": { "type": "String", "example": "Lion" } }
+  },
+  "save": "Save",
+  "colorAgain": "Again!",
+
+  "gamesTitle": "Brain Games!",
+  "gameShapeSorter": "Shape Sorter",
+  "gameColorMatch": "Color Match",
+  "gameMemoryFlip": "Memory Flip",
+  "gameLetterTrace": "Letter Trace",
+  "gameCountTap": "Count & Tap",
+  "encourageTryAgain": "Try again!",
+  "encourageYouCanDoIt": "You can do it!",
+
+  "stickersCollected": "{earned} of {total} stickers collected!",
+  "@stickersCollected": {
+    "placeholders": {
+      "earned": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+
+  "parentGateTitle": "Grown-ups only!",
+  "parentGatePrompt": "Solve to continue:",
+  "parentGateBack": "Back to playing",
+
+  "paywallTitle": "Unlock Everything",
+  "paywallSubtitle": "All pages · all games · new content monthly",
+  "planAnnual": "Annual",
+  "planMonthly": "Monthly",
+  "freeTrialBadge": "7-DAY FREE TRIAL",
+  "startFreeTrial": "Start Free Trial",
+  "restorePurchases": "Restore purchases",
+
+  "settingsTitle": "Parent Settings",
+  "manageSubscription": "Manage Subscription",
+  "soundsAndMusic": "Sounds & Music",
+  "ageBandSetting": "Age Band",
+  "playLimit": "Daily Play Limit",
+  "privacyPolicy": "Privacy Policy",
+  "deleteProfile": "Delete Profile & Data",
+  "coppaNotice": "COPPA compliant"
+}

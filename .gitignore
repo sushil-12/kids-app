@@ -1,0 +1,25 @@
+# Dart/Flutter
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# Generated (regenerated via `flutter pub get` / `flutter gen-l10n` / build_runner)
+**/*.g.dart
+**/*.freezed.dart
+lib/src/l10n/app_localizations*.dart
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+
+# Secrets — never commit API keys (RevenueCat etc.)
+.env
+*.keystore
+key.properties
