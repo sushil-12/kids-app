@@ -37,6 +37,13 @@
   "categoryShapes": "Shapes",
   "categoryDoodle": "Doodle Art",
 
+  "toolFill": "Fill",
+  "toolBrush": "Brush",
+  "toolErase": "Erase",
+  "toolUndo": "Undo",
+  "doneButton": "Done!",
+  "pickAColor": "Pick a color, then tap the picture!",
+
   "celebrationTitle": "Amazing!",
   "newStickerEarned": "New sticker earned!",
   "playRelatedGame": "Play a {subject} game!",

@@ -25,6 +25,13 @@
   "categoryShapes": "आकार",
   "categoryDoodle": "डूडल आर्ट",
 
+  "toolFill": "भरें",
+  "toolBrush": "ब्रश",
+  "toolErase": "मिटाएँ",
+  "toolUndo": "वापस",
+  "doneButton": "हो गया!",
+  "pickAColor": "रंग चुनो, फिर तस्वीर पर छुओ!",
+
   "celebrationTitle": "शाबाश!",
   "newStickerEarned": "नया स्टिकर मिला!",
   "playRelatedGame": "{subject} का खेल खेलो!",
