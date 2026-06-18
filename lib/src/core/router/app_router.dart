@@ -1,8 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/coloring/view/color_by_number_screen.dart';
 import '../../features/coloring/view/coloring_canvas_screen.dart';
 import '../../features/coloring/view/coloring_gallery_screen.dart';
+import '../../features/games/color_match/view/color_match_screen.dart';
+import '../../features/games/count_tap/view/count_tap_screen.dart';
+import '../../features/games/letter_trace/view/letter_trace_screen.dart';
+import '../../features/games/memory_flip/view/memory_flip_screen.dart';
+import '../../features/games/odd_one_out/view/odd_one_out_screen.dart';
+import '../../features/games/pattern/view/pattern_screen.dart';
+import '../../features/games/shape_sorter/view/shape_sorter_screen.dart';
 import '../../features/games/shared/games_hub_screen.dart';
 import '../../features/home/view/home_screen.dart';
 import '../../features/onboarding/view/onboarding_screen.dart';
@@ -19,7 +26,15 @@ abstract final class Routes {
   static const String home = '/home';
   static const String gallery = '/coloring';
   static const String canvas = '/coloring/canvas';
+  static const String colorByNumber = '/coloring/numbers';
   static const String games = '/games';
+  static const String gameShapeSorter = '/games/shapes';
+  static const String gameColorMatch = '/games/colors';
+  static const String gameMemoryFlip = '/games/memory';
+  static const String gameLetterTrace = '/games/letters';
+  static const String gameCountTap = '/games/count';
+  static const String gamePattern = '/games/pattern';
+  static const String gameOddOneOut = '/games/odd';
   static const String stickers = '/stickers';
   static const String paywall = '/paywall';
   static const String settings = '/settings';
@@ -41,9 +56,26 @@ final GoRouter appRouter = GoRouter(
           builder: (_, GoRouterState state) =>
               ColoringCanvasScreen(pageId: state.uri.queryParameters['page'] ?? 'lion'),
         ),
+        GoRoute(
+          path: 'numbers',
+          builder: (_, GoRouterState state) =>
+              ColorByNumberScreen(pageId: state.uri.queryParameters['page'] ?? 'sun'),
+        ),
       ],
     ),
-    GoRoute(path: Routes.games, builder: (_, __) => const GamesHubScreen()),
+    GoRoute(
+      path: Routes.games,
+      builder: (_, __) => const GamesHubScreen(),
+      routes: <RouteBase>[
+        GoRoute(path: 'shapes', builder: (_, __) => const ShapeSorterScreen()),
+        GoRoute(path: 'colors', builder: (_, __) => const ColorMatchScreen()),
+        GoRoute(path: 'memory', builder: (_, __) => const MemoryFlipScreen()),
+        GoRoute(path: 'letters', builder: (_, __) => const LetterTraceScreen()),
+        GoRoute(path: 'count', builder: (_, __) => const CountTapScreen()),
+        GoRoute(path: 'pattern', builder: (_, __) => const PatternScreen()),
+        GoRoute(path: 'odd', builder: (_, __) => const OddOneOutScreen()),
+      ],
+    ),
     GoRoute(path: Routes.stickers, builder: (_, __) => const StickerRoomScreen()),
     GoRoute(path: Routes.paywall, builder: (_, __) => const PaywallScreen()),
     GoRoute(path: Routes.settings, builder: (_, __) => const SettingsScreen()),

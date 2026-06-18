@@ -9,11 +9,13 @@ abstract final class AppTheme {
   const AppTheme._();
 
   static ThemeData light() {
+    // Seeded from the "Little Genius" logo: purple-led rainbow wordmark on a
+    // soft, light ground.
     final ColorScheme scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.teal,
-      primary: AppColors.teal,
+      seedColor: AppColors.purple,
+      primary: AppColors.purple,
       secondary: AppColors.coral,
-      tertiary: AppColors.purple,
+      tertiary: AppColors.teal,
       surface: AppColors.cream,
       brightness: Brightness.light,
     );

@@ -10,34 +10,78 @@ import '../data/coloring_templates.dart';
 import '../engine/coloring_painter.dart';
 
 /// S4 · Coloring Gallery. Shows each picture's line art as a preview so kids
-/// recognize what they're about to color.
-class ColoringGalleryScreen extends StatelessWidget {
+/// recognize what they're about to color. A mode toggle switches between free
+/// coloring and the guided Color-by-Number variation.
+class ColoringGalleryScreen extends StatefulWidget {
   const ColoringGalleryScreen({super.key});
+
+  @override
+  State<ColoringGalleryScreen> createState() => _ColoringGalleryScreenState();
+}
+
+class _ColoringGalleryScreenState extends State<ColoringGalleryScreen> {
+  bool _byNumber = false;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
+    // In by-number mode, only pictures that define a number map are offered.
+    final List<ColoringTemplate> templates = _byNumber
+        ? kColoringTemplates
+            .where((ColoringTemplate t) => t.supportsByNumber)
+            .toList()
+        : kColoringTemplates;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.galleryTitle),
         backgroundColor: Colors.transparent,
       ),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 0.82,
-        ),
-        itemCount: kColoringTemplates.length,
-        itemBuilder: (BuildContext context, int i) {
-          final ColoringTemplate template = kColoringTemplates[i];
-          return _PictureCard(
-            template: template,
-            onTap: () => context.push('${Routes.canvas}?page=${template.id}'),
-          );
-        },
+      body: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            child: SegmentedButton<bool>(
+              segments: <ButtonSegment<bool>>[
+                ButtonSegment<bool>(
+                  value: false,
+                  label: Text(l10n.coloringModeFree),
+                  icon: const Icon(Icons.brush_rounded),
+                ),
+                ButtonSegment<bool>(
+                  value: true,
+                  label: Text(l10n.coloringModeByNumber),
+                  icon: const Icon(Icons.format_list_numbered_rounded),
+                ),
+              ],
+              selected: <bool>{_byNumber},
+              onSelectionChanged: (Set<bool> s) =>
+                  setState(() => _byNumber = s.first),
+            ),
+          ),
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.82,
+              ),
+              itemCount: templates.length,
+              itemBuilder: (BuildContext context, int i) {
+                final ColoringTemplate template = templates[i];
+                final String route = _byNumber
+                    ? '${Routes.colorByNumber}?page=${template.id}'
+                    : '${Routes.canvas}?page=${template.id}';
+                return _PictureCard(
+                  template: template,
+                  onTap: () => context.push(route),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

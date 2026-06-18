@@ -25,8 +25,10 @@ class ColoringTemplate {
     required this.viewBox,
     required this.regions,
     required this.outlines,
+    required this.stickerRewardId,
     this.details = const <Path>[],
     this.isPremium = false,
+    this.byNumber = const <String, int>{},
   });
 
   final String id;
@@ -36,6 +38,17 @@ class ColoringTemplate {
   final List<Path> outlines;
   final List<Path> details;
   final bool isPremium;
+
+  /// Id of the sticker (in `kStickers`) awarded for finishing this picture, so
+  /// each page unlocks a themed reward (e.g. the fish page → the fish sticker).
+  final String stickerRewardId;
+
+  /// Color-by-Number key: region id → 1-based palette number (see
+  /// `kByNumberPalette`). Empty means the picture has no by-number mode.
+  final Map<String, int> byNumber;
+
+  /// Whether this picture can be played in Color-by-Number mode.
+  bool get supportsByNumber => byNumber.isNotEmpty;
 
   /// Finds the top-most region containing [logicalPoint], or null.
   String? hitTest(Offset logicalPoint) {

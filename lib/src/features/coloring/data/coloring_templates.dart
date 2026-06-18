@@ -62,6 +62,7 @@ ColoringTemplate _sun() {
     id: 'sun',
     title: 'Happy Sun',
     viewBox: 100,
+    stickerRewardId: 'sun',
     regions: <ColorRegion>[
       ColorRegion(id: 'sky', path: _fullBackground()),
       ColorRegion(id: 'rays', path: rays),
@@ -72,6 +73,7 @@ ColoringTemplate _sun() {
       _circle(cx - 8, cy - 3, 2.4),
       _circle(cx + 8, cy - 3, 2.4),
     ],
+    byNumber: <String, int>{'sky': 5, 'rays': 2, 'body': 1},
   );
 }
 
@@ -94,6 +96,7 @@ ColoringTemplate _fish() {
     id: 'fish',
     title: 'Splashy Fish',
     viewBox: 100,
+    stickerRewardId: 'fish',
     regions: <ColorRegion>[
       ColorRegion(id: 'water', path: _fullBackground()),
       ColorRegion(id: 'tail', path: tail),
@@ -103,6 +106,13 @@ ColoringTemplate _fish() {
     ],
     outlines: <Path>[body, tail, fin, eyeWhite, mouth, bubbles],
     details: <Path>[_circle(69, 46, 2.2)],
+    byNumber: <String, int>{
+      'water': 5,
+      'tail': 2,
+      'fin': 1,
+      'body': 3,
+      'eye': 6,
+    },
   );
 }
 
@@ -134,6 +144,7 @@ ColoringTemplate _flower() {
     title: 'Sunny Flower',
     viewBox: 100,
     isPremium: true,
+    stickerRewardId: 'flower',
     regions: <ColorRegion>[
       ColorRegion(id: 'sky', path: _fullBackground()),
       ColorRegion(id: 'stem', path: stem),
@@ -143,6 +154,14 @@ ColoringTemplate _flower() {
       ColorRegion(id: 'center', path: center),
     ],
     outlines: <Path>[petals, center, stem, leftLeaf, rightLeaf],
+    byNumber: <String, int>{
+      'sky': 5,
+      'stem': 4,
+      'leftLeaf': 4,
+      'rightLeaf': 4,
+      'petals': 2,
+      'center': 1,
+    },
   );
 }
 
@@ -161,6 +180,7 @@ ColoringTemplate _house() {
     title: 'Cozy House',
     viewBox: 100,
     isPremium: true,
+    stickerRewardId: 'house',
     regions: <ColorRegion>[
       ColorRegion(id: 'sky', path: _fullBackground()),
       ColorRegion(id: 'sun', path: sun),
@@ -172,5 +192,14 @@ ColoringTemplate _house() {
     ],
     outlines: <Path>[wall, roof, door, win1, win2, sun],
     details: <Path>[_circle(54, 79, 1.4)],
+    byNumber: <String, int>{
+      'sky': 5,
+      'sun': 1,
+      'wall': 4,
+      'roof': 2,
+      'door': 3,
+      'win1': 6,
+      'win2': 6,
+    },
   );
 }

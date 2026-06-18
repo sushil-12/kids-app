@@ -11,12 +11,17 @@
   "ageBand24": "2–4 years",
   "ageBand56": "5–6 years",
   "pickBuddy": "Pick a buddy!",
+  "pickBuddyHint": "They'll cheer you on!",
   "letsGo": "Let's Go! 🚀",
 
   "homeGreeting": "Hi {name}!",
   "@homeGreeting": {
     "description": "Greeting on the home screen",
     "placeholders": { "name": { "type": "String", "example": "Maya" } }
+  },
+  "homeGreetingNoName": "Hi there!",
+  "@homeGreetingNoName": {
+    "description": "Home greeting when no child name was provided"
   },
   "tileColor": "Color!",
   "tileColorSubtitle": "{count} fun pages",
@@ -29,6 +34,19 @@
     "placeholders": { "count": { "type": "int", "example": "5" } }
   },
   "stickerRoom": "My Sticker Room",
+
+  "homeQuestion": "What shall we do today?",
+  "homeStreakTitle": "{count}-day streak!",
+  "@homeStreakTitle": {
+    "description": "Consecutive days played, shown on the home streak card",
+    "placeholders": { "count": { "type": "int", "example": "3" } }
+  },
+  "homeStreakSubtitle": "You're on fire! 🔥",
+  "homeWeekProgress": "This week",
+  "homeDailyTitle": "Today's Adventure",
+  "homeDailySubtitle": "A surprise pick, just for you!",
+  "homeStart": "Start",
+  "homeBuddyHi": "Let's play!",
 
   "galleryTitle": "Pick a page!",
   "categoryAnimals": "Animals",
@@ -43,9 +61,13 @@
   "toolUndo": "Undo",
   "doneButton": "Done!",
   "pickAColor": "Pick a color, then tap the picture!",
+  "coloringModeFree": "Free",
+  "coloringModeByNumber": "By Number",
+  "colorByNumberHint": "Pick a number, then tap the matching spots!",
 
   "celebrationTitle": "Amazing!",
   "newStickerEarned": "New sticker earned!",
+  "allStickersEarned": "You've collected them all!",
   "playRelatedGame": "Play a {subject} game!",
   "@playRelatedGame": {
     "placeholders": { "subject": { "type": "String", "example": "Lion" } }
@@ -59,6 +81,8 @@
   "gameMemoryFlip": "Memory Flip",
   "gameLetterTrace": "Letter Trace",
   "gameCountTap": "Count & Tap",
+  "gamePattern": "What's Next?",
+  "gameOddOneOut": "Find the Odd One",
   "encourageTryAgain": "Try again!",
   "encourageYouCanDoIt": "You can do it!",
 
@@ -89,5 +113,46 @@
   "playLimit": "Daily Play Limit",
   "privacyPolicy": "Privacy Policy",
   "deleteProfile": "Delete Profile & Data",
-  "coppaNotice": "COPPA compliant"
+  "deleteProfileMessage": "This erases your child's name, age and buddy. You can set them up again anytime.",
+  "cancel": "Cancel",
+  "deleteConfirm": "Delete",
+  "coppaNotice": "COPPA compliant",
+
+  "roundOf": "Round {current} of {total}",
+  "@roundOf": {
+    "description": "Progress label for round-based games",
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "gameWinTitle": "You did it!",
+  "playAgain": "Play again!",
+  "backToGames": "More games",
+
+  "shapeSorterInstruction": "Drag each shape to its home!",
+  "colorMatchInstruction": "Tap everything {color}!",
+  "@colorMatchInstruction": {
+    "placeholders": { "color": { "type": "String", "example": "red" } }
+  },
+  "memoryFlipInstruction": "Find the matching pairs!",
+  "letterTraceInstruction": "Trace the letter {letter}!",
+  "@letterTraceInstruction": {
+    "placeholders": { "letter": { "type": "String", "example": "A" } }
+  },
+  "countTapInstruction": "Tap {count} apples!",
+  "@countTapInstruction": {
+    "placeholders": { "count": { "type": "int", "example": "3" } }
+  },
+  "patternInstruction": "What comes next?",
+  "oddOneOutInstruction": "Which one is different?",
+
+  "colorRed": "red",
+  "colorOrange": "orange",
+  "colorYellow": "yellow",
+  "colorGreen": "green",
+  "colorTeal": "teal",
+  "colorBlue": "blue",
+  "colorPurple": "purple",
+  "colorPink": "pink"
 }

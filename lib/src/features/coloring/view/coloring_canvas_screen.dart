@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../rewards/view_model/rewards_view_model.dart';
 import '../data/coloring_template.dart';
 import '../engine/coloring_painter.dart';
 import '../view_model/coloring_view_model.dart';
@@ -57,7 +58,7 @@ class _ColoringCanvasScreenState extends ConsumerState<ColoringCanvasScreen> {
             const SizedBox(height: 8),
             _DoneButton(
               label: l10n.doneButton,
-              onDone: () => _celebrate(context),
+              onDone: () => _celebrate(context, state.template.stickerRewardId),
             ),
             const SizedBox(height: 10),
           ],
@@ -66,7 +67,11 @@ class _ColoringCanvasScreenState extends ConsumerState<ColoringCanvasScreen> {
     );
   }
 
-  void _celebrate(BuildContext context) {
+  void _celebrate(BuildContext context, String stickerRewardId) {
+    // Finishing a picture earns its themed, persisted sticker (CLAUDE.md §6).
+    // awardById falls back to a random sticker if the id is ever unknown.
+    final StickerAward award =
+        ref.read(rewardsProvider.notifier).awardById(stickerRewardId);
     showDialog<void>(
       context: context,
       builder: (BuildContext ctx) {
@@ -77,7 +82,7 @@ class _ColoringCanvasScreenState extends ConsumerState<ColoringCanvasScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              const Text('🌟', style: TextStyle(fontSize: 64)),
+              Text(award.sticker.emoji, style: const TextStyle(fontSize: 64)),
               const SizedBox(height: 8),
               Text(
                 l10n.celebrationTitle,
@@ -85,7 +90,7 @@ class _ColoringCanvasScreenState extends ConsumerState<ColoringCanvasScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                l10n.newStickerEarned,
+                award.isNew ? l10n.newStickerEarned : l10n.allStickersEarned,
                 style: Theme.of(ctx).textTheme.titleMedium?.copyWith(color: AppColors.cream),
               ),
             ],
