@@ -11,18 +11,28 @@ class LetterTraceState {
     required this.letter,
     required this.dots,
     this.visited = const <int>{},
+    this.drawnPoints = const <Offset>[],
   });
 
   final String letter;
   final List<Offset> dots;
   final Set<int> visited;
 
+  /// Raw normalized finger positions collected during the trace, used to draw
+  /// the ink trail. A sentinel `Offset(-1, -1)` separates lifted strokes.
+  final List<Offset> drawnPoints;
+
   int get total => dots.length;
   int get progress => visited.length;
   bool get isComplete => dots.isNotEmpty && visited.length == dots.length;
 
-  LetterTraceState copyWith({Set<int>? visited}) =>
-      LetterTraceState(letter: letter, dots: dots, visited: visited ?? this.visited);
+  LetterTraceState copyWith({Set<int>? visited, List<Offset>? drawnPoints}) =>
+      LetterTraceState(
+        letter: letter,
+        dots: dots,
+        visited: visited ?? this.visited,
+        drawnPoints: drawnPoints ?? this.drawnPoints,
+      );
 }
 
 /// Owns Letter Trace state. Completion is forgiving: a guide dot lights up when
@@ -63,7 +73,8 @@ class LetterTraceViewModel extends Notifier<LetterTraceState> {
     return LetterTraceState(letter: letter, dots: _letters[letter]!);
   }
 
-  /// Lights up any guide dot within reach of the normalized finger [point].
+  /// Lights up any guide dot within reach of the normalized finger [point]
+  /// and records the point for the ink trail.
   void touch(Offset point) {
     Set<int>? next;
     for (int i = 0; i < state.dots.length; i++) {
@@ -72,7 +83,19 @@ class LetterTraceViewModel extends Notifier<LetterTraceState> {
         (next ??= <int>{...state.visited}).add(i);
       }
     }
-    if (next != null) state = state.copyWith(visited: next);
+    state = state.copyWith(
+      visited: next,
+      drawnPoints: <Offset>[...state.drawnPoints, point],
+    );
+  }
+
+  /// Called when the finger lifts; inserts a sentinel to break the path.
+  void liftPen() {
+    if (state.drawnPoints.isNotEmpty) {
+      state = state.copyWith(
+        drawnPoints: <Offset>[...state.drawnPoints, const Offset(-1, -1)],
+      );
+    }
   }
 
   void reset() => state = _pick();

@@ -39,46 +39,71 @@ class LetterTraceScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(28),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: AppColors.blue.withValues(alpha: 0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final Size size = constraints.biggest;
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final Size size = constraints.biggest;
 
-                void handle(Offset local) => vm.touch(
-                      Offset(local.dx / size.width, local.dy / size.height),
-                    );
+                  void handlePoint(Offset local) => vm.touch(
+                        Offset(local.dx / size.width, local.dy / size.height),
+                      );
 
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onPanStart: (DragStartDetails d) => handle(d.localPosition),
-                  onPanUpdate: (DragUpdateDetails d) => handle(d.localPosition),
-                  onTapDown: (TapDownDetails d) => handle(d.localPosition),
-                  child: Stack(
-                    children: <Widget>[
-                      // Faint guide glyph behind the dots.
-                      Center(
-                        child: Text(
-                          state.letter,
-                          style: TextStyle(
-                            fontSize: size.shortestSide * 0.85,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.blue.withValues(alpha: 0.12),
-                            height: 1,
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onPanStart: (DragStartDetails d) =>
+                        handlePoint(d.localPosition),
+                    onPanUpdate: (DragUpdateDetails d) =>
+                        handlePoint(d.localPosition),
+                    onPanEnd: (_) => vm.liftPen(),
+                    onTapDown: (TapDownDetails d) =>
+                        handlePoint(d.localPosition),
+                    child: Stack(
+                      children: <Widget>[
+                        // Faint guide glyph behind the dots.
+                        Center(
+                          child: Text(
+                            state.letter,
+                            style: TextStyle(
+                              fontSize: size.shortestSide * 0.85,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.blue.withValues(alpha: 0.08),
+                              height: 1,
+                            ),
                           ),
                         ),
-                      ),
-                      for (int i = 0; i < state.dots.length; i++)
-                        _Dot(
-                          center: Offset(
-                            state.dots[i].dx * size.width,
-                            state.dots[i].dy * size.height,
+                        // Ink trail drawn by the child's finger.
+                        RepaintBoundary(
+                          child: CustomPaint(
+                            size: size,
+                            painter: _TracePainter(
+                              points: state.drawnPoints,
+                              color: AppColors.teal,
+                            ),
                           ),
-                          lit: state.visited.contains(i),
                         ),
-                    ],
-                  ),
-                );
-              },
+                        // Guide dots.
+                        for (int i = 0; i < state.dots.length; i++)
+                          _Dot(
+                            center: Offset(
+                              state.dots[i].dx * size.width,
+                              state.dots[i].dy * size.height,
+                            ),
+                            lit: state.visited.contains(i),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -87,13 +112,58 @@ class LetterTraceScreen extends ConsumerWidget {
   }
 }
 
+/// Draws the ink trail. Sentinel `Offset(-1, -1)` breaks the path into
+/// separate sub-paths (one per continuous finger stroke).
+class _TracePainter extends CustomPainter {
+  const _TracePainter({required this.points, required this.color});
+
+  final List<Offset> points;
+  final Color color;
+
+  static const double _sentinel = -1;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.length < 2) return;
+
+    final Paint paint = Paint()
+      ..color = color.withValues(alpha: 0.85)
+      ..strokeWidth = 14
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+
+    final Path path = Path();
+    bool penDown = false;
+
+    for (final Offset p in points) {
+      if (p.dx == _sentinel && p.dy == _sentinel) {
+        penDown = false;
+        continue;
+      }
+      final Offset pixel = Offset(p.dx * size.width, p.dy * size.height);
+      if (!penDown) {
+        path.moveTo(pixel.dx, pixel.dy);
+        penDown = true;
+      } else {
+        path.lineTo(pixel.dx, pixel.dy);
+      }
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_TracePainter old) => old.points.length != points.length;
+}
+
 class _Dot extends StatelessWidget {
   const _Dot({required this.center, required this.lit});
 
   final Offset center;
   final bool lit;
 
-  static const double _size = 30;
+  static const double _size = 32;
 
   @override
   Widget build(BuildContext context) {
@@ -101,16 +171,24 @@ class _Dot extends StatelessWidget {
       left: center.dx - _size / 2,
       top: center.dy - _size / 2,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: const Duration(milliseconds: 200),
         width: _size,
         height: _size,
         decoration: BoxDecoration(
-          color: lit ? AppColors.green : AppColors.blue.withValues(alpha: 0.25),
+          color: lit ? AppColors.green : Colors.white,
           shape: BoxShape.circle,
           border: Border.all(
             color: lit ? AppColors.green : AppColors.blue,
             width: 3,
           ),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: (lit ? AppColors.green : AppColors.blue)
+                  .withValues(alpha: 0.3),
+              blurRadius: 6,
+              spreadRadius: 1,
+            ),
+          ],
         ),
         child: lit
             ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
