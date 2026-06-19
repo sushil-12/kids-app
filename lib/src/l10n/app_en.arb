@@ -154,5 +154,22 @@
   "colorTeal": "teal",
   "colorBlue": "blue",
   "colorPurple": "purple",
-  "colorPink": "pink"
+  "colorPink": "pink",
+
+  "tileLearn": "Learn!",
+  "tileLearnSubtitle": "Stories, ABC & poems",
+  "learnHubTitle": "Learn & Discover",
+  "learnHubSubtitle": "Stories, letters, and rhymes",
+  "dailyStoryTitle": "Today's Story",
+  "dailyStorySubtitle": "A new tale with a lesson",
+  "abcTitle": "ABC Time",
+  "abcSubtitle": "Letters and words",
+  "poemsTitle": "Poems",
+  "poemsSubtitle": "Fun rhymes to read",
+  "moralLabel": "Today's lesson:",
+  "contentLoading": "Creating something magical...",
+  "newStoryButton": "New Story",
+  "newPoemButton": "New Poem",
+  "prevLetter": "Back",
+  "nextLetter": "Next"
 }

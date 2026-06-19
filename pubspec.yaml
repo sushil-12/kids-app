@@ -35,6 +35,9 @@ dependencies:
   audioplayers: ^6.1.0
   rive: ^0.13.20
 
+  # HTTP client for AI API calls.
+  http: ^1.2.0
+
   # Misc.
   path_provider: ^2.1.5
   equatable: ^2.0.7

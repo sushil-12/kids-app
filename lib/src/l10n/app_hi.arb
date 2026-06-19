@@ -110,5 +110,22 @@
   "colorTeal": "फ़िरोज़ा",
   "colorBlue": "नीला",
   "colorPurple": "बैंगनी",
-  "colorPink": "गुलाबी"
+  "colorPink": "गुलाबी",
+
+  "tileLearn": "सीखो!",
+  "tileLearnSubtitle": "कहानियाँ, वर्णमाला और कविताएँ",
+  "learnHubTitle": "सीखो और खोजो",
+  "learnHubSubtitle": "कहानियाँ, अक्षर और कविताएँ",
+  "dailyStoryTitle": "आज की कहानी",
+  "dailyStorySubtitle": "एक नई कहानी, एक नई सीख",
+  "abcTitle": "वर्णमाला समय",
+  "abcSubtitle": "अक्षर और शब्द",
+  "poemsTitle": "कविताएँ",
+  "poemsSubtitle": "मज़ेदार तुकबंदी",
+  "moralLabel": "आज की सीख:",
+  "contentLoading": "कुछ जादुई तैयार हो रहा है...",
+  "newStoryButton": "नई कहानी",
+  "newPoemButton": "नई कविता",
+  "prevLetter": "पीछे",
+  "nextLetter": "आगे"
 }

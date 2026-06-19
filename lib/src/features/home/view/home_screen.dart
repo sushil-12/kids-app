@@ -120,6 +120,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
+                  SizedBox(
+                    height: 96,
+                    child: _ActivityTile(
+                      label: l10n.tileLearn,
+                      subtitle: l10n.tileLearnSubtitle,
+                      color: AppColors.green,
+                      icon: Icons.menu_book_rounded,
+                      onTap: () => context.push(Routes.learn),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   _StickerProgress(
                     earned: rewards.earned,
                     total: rewards.total,

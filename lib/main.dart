@@ -5,6 +5,7 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import 'src/app/app.dart';
 import 'src/core/services/feature_flags.dart';
+import 'src/features/learn/data/content_cache.dart';
 import 'src/features/adaptive/data/adaptive_repository.dart';
 import 'src/features/adaptive/view_model/adaptive_view_model.dart';
 import 'src/features/profile/data/profile_repository.dart';
@@ -30,6 +31,7 @@ Future<void> main() async {
       await Hive.openBox<dynamic>(HiveFeatureFlagStore.boxName);
   final Box<dynamic> adaptiveBox =
       await Hive.openBox<dynamic>(HiveAdaptiveStore.boxName);
+  final Box<String> learnBox = await Hive.openBox<String>('learn_content');
 
   // Kids' app: lock to portrait for a predictable, simple layout.
   await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
@@ -47,6 +49,8 @@ Future<void> main() async {
             .overrideWithValue(HiveFeatureFlagStore(flagsBox)),
         adaptiveStoreProvider
             .overrideWithValue(HiveAdaptiveStore(adaptiveBox)),
+        contentCacheProvider
+            .overrideWithValue(HiveContentCache(learnBox)),
       ],
       child: const BrightMindApp(),
     ),

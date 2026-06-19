@@ -1,5 +1,9 @@
 import 'package:go_router/go_router.dart';
 
+import '../../features/learn/view/abc_tutorial_screen.dart';
+import '../../features/learn/view/daily_story_screen.dart';
+import '../../features/learn/view/learn_hub_screen.dart';
+import '../../features/learn/view/poem_screen.dart';
 import '../../features/coloring/view/color_by_number_screen.dart';
 import '../../features/coloring/view/coloring_canvas_screen.dart';
 import '../../features/coloring/view/coloring_gallery_screen.dart';
@@ -35,6 +39,10 @@ abstract final class Routes {
   static const String gameCountTap = '/games/count';
   static const String gamePattern = '/games/pattern';
   static const String gameOddOneOut = '/games/odd';
+  static const String learn = '/learn';
+  static const String learnStory = '/learn/story';
+  static const String learnAbc = '/learn/abc';
+  static const String learnPoems = '/learn/poems';
   static const String stickers = '/stickers';
   static const String paywall = '/paywall';
   static const String settings = '/settings';
@@ -74,6 +82,15 @@ final GoRouter appRouter = GoRouter(
         GoRoute(path: 'count', builder: (_, __) => const CountTapScreen()),
         GoRoute(path: 'pattern', builder: (_, __) => const PatternScreen()),
         GoRoute(path: 'odd', builder: (_, __) => const OddOneOutScreen()),
+      ],
+    ),
+    GoRoute(
+      path: Routes.learn,
+      builder: (_, __) => const LearnHubScreen(),
+      routes: <RouteBase>[
+        GoRoute(path: 'story', builder: (_, __) => const DailyStoryScreen()),
+        GoRoute(path: 'abc', builder: (_, __) => const AbcTutorialScreen()),
+        GoRoute(path: 'poems', builder: (_, __) => const PoemScreen()),
       ],
     ),
     GoRoute(path: Routes.stickers, builder: (_, __) => const StickerRoomScreen()),
