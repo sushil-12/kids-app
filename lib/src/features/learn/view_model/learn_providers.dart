@@ -2,31 +2,29 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/services/openai_service.dart';
+import '../../../core/services/backend_service.dart';
 import '../../../features/profile/data/child_profile.dart';
 import '../../../features/profile/view_model/profile_view_model.dart';
 import '../data/content_cache.dart';
 import '../data/learn_content.dart';
 
 // ---------------------------------------------------------------------------
-// Cost model — three tiers, cheapest wins:
+// Content resolution — 3 tiers, cheapest first:
 //
-//  Tier 1 — Static data   (zero cost, ships in APK)
-//  Tier 2 — Hive cache    (zero cost, device-local)
-//  Tier 3 — OpenAI API    (paid; only as a last resort, results always cached)
+//  Tier 1  Static dataset (ships in APK)     → instant, zero cost
+//  Tier 2  Hive cache (device-local)          → instant, zero cost
+//  Tier 3  Backend API                        → network call; backend decides
+//          └─ Backend internally: DB → Redis → OpenAI (with daily cap)
+//             The app doesn't know or care which backend tier was used.
 //
-// ABC lessons are permanently in Tier 1 — they never reach Tier 3.
-// Stories  → Tier 3 at most once per day per age band.
-// Poems    → Tier 3 only on explicit "New Poem" action (user intent signal).
-//
-// Future work: insert a Tier 2.5 — your own backend serving crawled datasets.
-// Replace openAiServiceProvider override in main.dart with backendServiceProvider
-// and zero calls will reach OpenAI for common content.
+// ABC lessons never leave Tier 1 — full A–Z is pre-written in the app.
+// Stories  → Tier 3 at most once per day per age band, result cached in Hive.
+// Poems    → Tier 1 on first load; Tier 3 only on explicit "New Poem" tap.
 // ---------------------------------------------------------------------------
 
 String _todayKey() => DateTime.now().toIso8601String().substring(0, 10);
 
-/// Increment to request a fresh story (skips today's Hive cache entry).
+/// Increment to request a fresh story (new Hive key, triggers backend call).
 final storyRefreshProvider = StateProvider<int>((_) => 0);
 
 /// Increment to request a fresh poem for the current topic.
@@ -38,27 +36,25 @@ final dailyStoryProvider = FutureProvider.autoDispose<DailyStory>((
   AutoDisposeFutureProviderRef<DailyStory> ref,
 ) async {
   final int refresh = ref.watch(storyRefreshProvider);
-  final OpenAiService ai = ref.watch(openAiServiceProvider);
+  final BackendService backend = ref.watch(backendServiceProvider);
   final ContentCache cache = ref.watch(contentCacheProvider);
   final ChildProfile? profile = ref.watch(profileProvider);
   final AgeBand band = profile?.ageBand ?? AgeBand.junior;
 
-  // Cache key includes date so the story refreshes naturally each day.
-  // Including the refresh counter lets the user request a second story
-  // for the day while still keeping the original cached.
   final String key = 'story_${band.name}_${_todayKey()}_r$refresh';
 
+  // Tier 2: Hive cache — same story served instantly for the rest of the day.
   final String? cached = await cache.get(key);
   if (cached != null) {
     return DailyStory.fromJson(jsonDecode(cached) as Map<String, dynamic>);
   }
 
-  // Tier 1: static fallback when no key or on first launch.
-  if (!ai.isConfigured) return LearnFallbacks.story;
+  // Tier 1: no backend key configured — serve bundled fallback.
+  if (!backend.isConfigured) return LearnFallbacks.story;
 
-  // Tier 3: call OpenAI, then permanently cache.
+  // Tier 3: backend call — result cached so this runs at most once per day.
   try {
-    final DailyStory story = await ai.generateDailyStory(band, _todayKey());
+    final DailyStory story = await backend.fetchDailyStory(band);
     await cache.set(key, jsonEncode(story.toJson()));
     return story;
   } catch (_) {
@@ -67,8 +63,9 @@ final dailyStoryProvider = FutureProvider.autoDispose<DailyStory>((
 });
 
 // ── ABC Lessons ─────────────────────────────────────────────────────────────
-// Tier 1 only. The complete A–Z static dataset ships with the app.
-// We intentionally never call the AI for ABC — the dataset is authoritative.
+// Tier 1 only — full A–Z ships with the app. No network call, ever.
+// When the backend's own ABC dataset becomes richer, swap this to a backend
+// call with a long Hive TTL (e.g. refresh weekly).
 
 final abcLessonProvider =
     FutureProvider.autoDispose.family<AbcLesson, String>((
@@ -81,19 +78,20 @@ final abcLessonProvider =
   );
 });
 
-// ── Poems ───────────────────────────────────────────────────────────────────
-// Tier 1 for the initial 5-poem set. Tier 2 (cache) on revisit.
-// Tier 3 only on explicit "New Poem" FAB tap (refresh > 0) and cache miss.
+// ── Poems ────────────────────────────────────────────────────────────────────
+// Tier 1 on first load (refresh == 0).
+// Tier 2 on revisit (cached from a previous refresh).
+// Tier 3 only when the user explicitly taps "New Poem" (refresh > 0).
 
 final poemProvider = FutureProvider.autoDispose.family<KidsPoem, String>((
   AutoDisposeFutureProviderRef<KidsPoem> ref,
   String topic,
 ) async {
   final int refresh = ref.watch(poemRefreshProvider);
-  final OpenAiService ai = ref.watch(openAiServiceProvider);
+  final BackendService backend = ref.watch(backendServiceProvider);
   final ContentCache cache = ref.watch(contentCacheProvider);
 
-  // Tier 1: serve bundled poem on first load (refresh == 0).
+  // Tier 1: bundled poem on first load.
   if (refresh == 0) {
     return LearnFallbacks.poems.firstWhere(
       (KidsPoem p) => p.topic == topic,
@@ -101,7 +99,7 @@ final poemProvider = FutureProvider.autoDispose.family<KidsPoem, String>((
     );
   }
 
-  // Tier 2: Hive cache for any previously generated poem.
+  // Tier 2: Hive cache for a previously fetched poem at this refresh index.
   final String slug = topic.toLowerCase().replaceAll(' ', '_');
   final String key = 'poem_${slug}_r$refresh';
   final String? cached = await cache.get(key);
@@ -109,16 +107,17 @@ final poemProvider = FutureProvider.autoDispose.family<KidsPoem, String>((
     return KidsPoem.fromJson(jsonDecode(cached) as Map<String, dynamic>);
   }
 
-  // Tier 3: user explicitly asked for something new — call OpenAI once.
-  if (!ai.isConfigured) {
+  // Tier 1 fallback when backend not configured.
+  if (!backend.isConfigured) {
     return LearnFallbacks.poems.firstWhere(
       (KidsPoem p) => p.topic == topic,
       orElse: () => LearnFallbacks.poems.first,
     );
   }
 
+  // Tier 3: user explicitly asked for something new.
   try {
-    final KidsPoem poem = await ai.generatePoem(topic);
+    final KidsPoem poem = await backend.fetchPoem(topic);
     await cache.set(key, jsonEncode(poem.toJson()));
     return poem;
   } catch (_) {
