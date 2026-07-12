@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/audio_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../rewards/view/win_celebration.dart';
@@ -73,7 +74,7 @@ class ColorMatchScreen extends ConsumerWidget {
 
 /// A tappable color circle. A correct tap reports up; a wrong tap wobbles in
 /// place (no penalty, House Rule §5).
-class _ColorTile extends StatefulWidget {
+class _ColorTile extends ConsumerStatefulWidget {
   const _ColorTile({
     required this.color,
     required this.found,
@@ -86,10 +87,10 @@ class _ColorTile extends StatefulWidget {
   final VoidCallback? onCorrectTap;
 
   @override
-  State<_ColorTile> createState() => _ColorTileState();
+  ConsumerState<_ColorTile> createState() => _ColorTileState();
 }
 
-class _ColorTileState extends State<_ColorTile> with SingleTickerProviderStateMixin {
+class _ColorTileState extends ConsumerState<_ColorTile> with SingleTickerProviderStateMixin {
   late final AnimationController _wobble = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 350),
@@ -106,6 +107,7 @@ class _ColorTileState extends State<_ColorTile> with SingleTickerProviderStateMi
       widget.onCorrectTap!();
     } else {
       _wobble.forward(from: 0);
+      ref.read(audioServiceProvider).sfx(Sfx.wobble); // gentle "not that one"
     }
   }
 

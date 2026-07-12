@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/audio_service.dart';
 import '../../../../core/services/feature_flags.dart';
 import '../../../adaptive/data/difficulty.dart';
 import '../../../adaptive/view_model/adaptive_view_model.dart';
@@ -87,7 +89,12 @@ class CountTapViewModel extends Notifier<CountTapState> {
     if (state.completed || state.roundComplete || state.tapped.contains(index)) {
       return;
     }
-    state = state.copyWith(tapped: <int>{...state.tapped, index});
+    final Set<int> tapped = <int>{...state.tapped, index};
+    state = state.copyWith(tapped: tapped);
+    // Count out loud as each apple is tapped: "1… 2… 3!"
+    final AudioService audio = ref.read(audioServiceProvider);
+    audio.sfx(Sfx.chime);
+    unawaited(audio.speakNumber(tapped.length));
   }
 
   /// Advances to the next round, or finishes after the last one. Counting has no

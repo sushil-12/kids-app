@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/audio_service.dart';
 import '../../../../core/services/feature_flags.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../adaptive/data/difficulty.dart';
@@ -107,6 +108,8 @@ class ShapeSorterViewModel extends Notifier<ShapeSorterState> {
     final List<ShapeKind> tray = List<ShapeKind>.of(state.tray)..remove(kind);
     final ShapeSorterState next = ShapeSorterState(holes: holes, tray: tray);
     state = next;
+    // Happy "pop" each time a shape clicks into its home.
+    ref.read(audioServiceProvider).sfx(Sfx.pop);
     if (!wasComplete &&
         next.isComplete &&
         ref.read(featureFlagsProvider).adaptiveDifficulty) {

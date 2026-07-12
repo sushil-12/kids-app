@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/audio_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../data/coloring_page.dart';
 import '../data/coloring_template.dart';
@@ -88,8 +91,19 @@ class CanvasViewModel extends FamilyNotifier<CanvasState, String> {
     return CanvasState(template: template);
   }
 
-  void selectColor(Color color) => state = state.copyWith(selectedColor: color);
-  void selectTool(CanvasTool tool) => state = state.copyWith(tool: tool);
+  AudioService get _audio => ref.read(audioServiceProvider);
+
+  void selectColor(Color color) {
+    state = state.copyWith(selectedColor: color);
+    // Say the color name so children connect the swatch to the spoken word.
+    _audio.sfx(Sfx.pop);
+    unawaited(_audio.speakColor(color));
+  }
+
+  void selectTool(CanvasTool tool) {
+    state = state.copyWith(tool: tool);
+    _audio.sfx(Sfx.tap);
+  }
 
   /// Tap handler for Fill / Eraser tools.
   void tapAt(Offset logicalPoint) {
@@ -101,8 +115,12 @@ class CanvasViewModel extends FamilyNotifier<CanvasState, String> {
 
     if (state.tool == CanvasTool.eraser) {
       next.remove(regionId);
+      _audio.sfx(Sfx.tap);
     } else {
       next[regionId] = state.selectedColor;
+      // Satisfying "plop" + the color name on every fill.
+      _audio.sfx(Sfx.plop);
+      unawaited(_audio.speakColor(state.selectedColor));
     }
 
     state = state.copyWith(

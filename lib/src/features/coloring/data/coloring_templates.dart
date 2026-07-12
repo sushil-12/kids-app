@@ -4,14 +4,36 @@ import 'package:flutter/widgets.dart';
 
 import 'coloring_template.dart';
 
-/// All bundled coloring pictures. Authored in a 100x100 viewBox.
-/// Original vector art — no third-party/copyrighted assets.
-final List<ColoringTemplate> kColoringTemplates = <ColoringTemplate>[
+/// Bundled coloring pictures. Authored in a 100x100 viewBox.
+/// Original vector art — no third-party/copyrighted assets. These always ship
+/// with the app so it works fully offline.
+final List<ColoringTemplate> _bundledTemplates = <ColoringTemplate>[
   _sun(),
   _fish(),
   _flower(),
   _house(),
 ];
+
+/// The live catalog the app renders: bundled pages plus any fetched from the
+/// backend. Starts as the bundled set and grows via [mergeRemoteTemplates];
+/// existing callers (gallery, view-models, [templateById]) read it unchanged.
+final List<ColoringTemplate> kColoringTemplates =
+    List<ColoringTemplate>.of(_bundledTemplates);
+
+/// Merges backend pages into [kColoringTemplates], replacing any bundled page
+/// with the same id (remote wins) and appending new ones. Idempotent.
+void mergeRemoteTemplates(List<ColoringTemplate> remote) {
+  for (final ColoringTemplate t in remote) {
+    final int i = kColoringTemplates.indexWhere(
+      (ColoringTemplate e) => e.id == t.id,
+    );
+    if (i >= 0) {
+      kColoringTemplates[i] = t;
+    } else {
+      kColoringTemplates.add(t);
+    }
+  }
+}
 
 ColoringTemplate? templateById(String id) {
   for (final ColoringTemplate t in kColoringTemplates) {

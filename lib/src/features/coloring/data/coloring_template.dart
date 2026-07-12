@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:path_drawing/path_drawing.dart';
 
 /// A single fillable area of a coloring picture (e.g. the sun's body).
 /// Paths are authored in a square viewBox coordinate space (see
@@ -30,6 +31,40 @@ class ColoringTemplate {
     this.isPremium = false,
     this.byNumber = const <String, int>{},
   });
+
+  /// Builds a template from the backend wire format (see
+  /// `kids-app-backend` `/v1/coloring`). Every `d` is an SVG path string parsed
+  /// straight into a Flutter [Path], so a downloaded page renders through the
+  /// exact same painter as a bundled one. Throws on malformed JSON/paths — the
+  /// caller skips bad pages so one dud never breaks the gallery.
+  factory ColoringTemplate.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> regionsJson = json['regions'] as List<dynamic>;
+    final List<ColorRegion> regions = <ColorRegion>[];
+    final Map<String, int> byNumber = <String, int>{};
+    for (final dynamic r in regionsJson) {
+      final Map<String, dynamic> m = r as Map<String, dynamic>;
+      final String id = m['id'] as String;
+      regions.add(ColorRegion(id: id, path: parseSvgPathData(m['d'] as String)));
+      final Object? bn = m['byNumber'];
+      if (bn is num) byNumber[id] = bn.toInt();
+    }
+    List<Path> parsePaths(Object? raw) => <Path>[
+          for (final dynamic d in (raw as List<dynamic>? ?? const <dynamic>[]))
+            parseSvgPathData(d as String),
+        ];
+    final String id = json['id'] as String;
+    return ColoringTemplate(
+      id: id,
+      title: json['title'] as String,
+      viewBox: (json['viewBox'] as num).toDouble(),
+      isPremium: json['isPremium'] as bool? ?? false,
+      stickerRewardId: json['stickerRewardId'] as String? ?? id,
+      regions: regions,
+      outlines: parsePaths(json['outlines']),
+      details: parsePaths(json['details']),
+      byNumber: byNumber,
+    );
+  }
 
   final String id;
   final String title;

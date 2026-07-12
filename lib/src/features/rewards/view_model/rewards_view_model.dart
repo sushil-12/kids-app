@@ -25,13 +25,17 @@ class StickerAward {
   final bool isNew;
 }
 
-/// Immutable view of the child's sticker collection.
+/// Immutable view of the child's sticker collection + story-reward wallet.
 @immutable
 class RewardsState {
-  const RewardsState(this.earnedIds);
+  const RewardsState(this.earnedIds, {this.stars = 0, this.coins = 0});
 
   /// Ids of every earned sticker.
   final Set<String> earnedIds;
+
+  /// Stars and coins earned from cinematic story rewards.
+  final int stars;
+  final int coins;
 
   int get earned => earnedIds.length;
   int get total => kStickers.length;
@@ -48,7 +52,11 @@ class RewardsViewModel extends Notifier<RewardsState> {
   RewardStore get _store => ref.read(rewardStoreProvider);
 
   @override
-  RewardsState build() => RewardsState(_store.earnedIds());
+  RewardsState build() => RewardsState(
+        _store.earnedIds(),
+        stars: _store.stars(),
+        coins: _store.coins(),
+      );
 
   /// Awards a random not-yet-earned sticker and persists it. If everything is
   /// already collected, returns a celebratory repeat without changing state —
@@ -81,10 +89,19 @@ class RewardsViewModel extends Notifier<RewardsState> {
     return StickerAward(sticker: target, isNew: isNew);
   }
 
+  /// Adds a story reward to the wallet and persists it. Negative amounts are
+  /// ignored — the wallet only ever grows (House Rule §5: every finish wins).
+  void addWallet({int stars = 0, int coins = 0}) {
+    final int nextStars = state.stars + math.max(0, stars);
+    final int nextCoins = state.coins + math.max(0, coins);
+    _store.saveWallet(stars: nextStars, coins: nextCoins);
+    state = RewardsState(state.earnedIds, stars: nextStars, coins: nextCoins);
+  }
+
   void _earn(String id) {
     final Set<String> next = <String>{...state.earnedIds, id};
     _store.save(next);
-    state = RewardsState(next);
+    state = RewardsState(next, stars: state.stars, coins: state.coins);
   }
 }
 

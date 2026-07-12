@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/coloring_page.dart';
+import '../data/coloring_repository.dart';
 import '../data/coloring_template.dart';
 import '../data/coloring_templates.dart';
 import '../engine/coloring_painter.dart';
@@ -12,19 +14,23 @@ import '../engine/coloring_painter.dart';
 /// S4 · Coloring Gallery. Shows each picture's line art as a preview so kids
 /// recognize what they're about to color. A mode toggle switches between free
 /// coloring and the guided Color-by-Number variation.
-class ColoringGalleryScreen extends StatefulWidget {
+class ColoringGalleryScreen extends ConsumerStatefulWidget {
   const ColoringGalleryScreen({super.key});
 
   @override
-  State<ColoringGalleryScreen> createState() => _ColoringGalleryScreenState();
+  ConsumerState<ColoringGalleryScreen> createState() =>
+      _ColoringGalleryScreenState();
 }
 
-class _ColoringGalleryScreenState extends State<ColoringGalleryScreen> {
+class _ColoringGalleryScreenState extends ConsumerState<ColoringGalleryScreen> {
   bool _byNumber = false;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
+    // Watch the catalog so the grid rebuilds once backend pages merge in.
+    // Bundled pages render immediately; this just adds fresh ones when ready.
+    ref.watch(coloringCatalogProvider);
     // In by-number mode, only pictures that define a number map are offered.
     final List<ColoringTemplate> templates = _byNumber
         ? kColoringTemplates

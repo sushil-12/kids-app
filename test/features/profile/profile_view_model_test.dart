@@ -44,13 +44,13 @@ void main() {
     vm().completeOnboarding(
       name: '  Maya  ',
       ageBand: AgeBand.senior,
-      buddyId: 'panda',
+      buddyId: 'boy',
     );
     final ChildProfile? p = read();
     expect(p, isNotNull);
     expect(p!.name, 'Maya'); // trimmed
     expect(p.ageBand, AgeBand.senior);
-    expect(p.buddy.id, 'panda');
+    expect(p.buddy.id, 'boy');
     expect(p.hasName, isTrue);
   });
 
@@ -68,21 +68,21 @@ void main() {
     vm().completeOnboarding(
       name: 'Aarav',
       ageBand: AgeBand.junior,
-      buddyId: 'fox',
+      buddyId: 'boy',
     );
     container.dispose();
 
     container = makeContainer();
     expect(read()!.name, 'Aarav');
     expect(read()!.ageBand, AgeBand.junior);
-    expect(read()!.buddy.id, 'fox');
+    expect(read()!.buddy.id, 'boy');
   });
 
   test('setAgeBand updates and persists the band', () {
     vm().completeOnboarding(
       name: 'Maya',
       ageBand: AgeBand.junior,
-      buddyId: 'tiger',
+      buddyId: 'girl',
     );
     vm().setAgeBand(AgeBand.senior);
     expect(read()!.ageBand, AgeBand.senior);
@@ -96,7 +96,7 @@ void main() {
     vm().completeOnboarding(
       name: 'Maya',
       ageBand: AgeBand.junior,
-      buddyId: 'tiger',
+      buddyId: 'girl',
     );
     vm().deleteProfile();
     expect(read(), isNull);

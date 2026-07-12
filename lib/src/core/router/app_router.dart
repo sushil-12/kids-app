@@ -1,6 +1,16 @@
 import 'package:go_router/go_router.dart';
 
+import '../../features/learn/view/abc_tutorial_screen.dart';
+import '../../features/learn/view/daily_story_screen.dart';
+import '../../features/learn/view/learn_hub_screen.dart';
+import '../../features/learn/view/poem_screen.dart';
+import '../../features/learn/view/story_player_screen.dart';
 import '../../features/coloring/view/color_by_number_screen.dart';
+import '../../features/creative_canvas/data/creative_guide.dart';
+import '../../features/creative_canvas/view/creative_draw_screen.dart';
+import '../../features/creative_canvas/view/creative_hub_screen.dart';
+import '../../features/creative_canvas/view/my_art_screen.dart';
+import '../../features/dev/view/sound_lab_screen.dart';
 import '../../features/coloring/view/coloring_canvas_screen.dart';
 import '../../features/coloring/view/coloring_gallery_screen.dart';
 import '../../features/games/color_match/view/color_match_screen.dart';
@@ -14,6 +24,7 @@ import '../../features/games/shared/games_hub_screen.dart';
 import '../../features/home/view/home_screen.dart';
 import '../../features/onboarding/view/onboarding_screen.dart';
 import '../../features/onboarding/view/splash_screen.dart';
+import '../../features/admin/view/admin_panel_screen.dart';
 import '../../features/paywall/view/paywall_screen.dart';
 import '../../features/settings/view/settings_screen.dart';
 import '../../features/stickers/view/sticker_room_screen.dart';
@@ -27,6 +38,9 @@ abstract final class Routes {
   static const String gallery = '/coloring';
   static const String canvas = '/coloring/canvas';
   static const String colorByNumber = '/coloring/numbers';
+  static const String creative = '/creative';
+  static const String creativeDraw = '/creative/draw';
+  static const String creativeArt = '/creative/art';
   static const String games = '/games';
   static const String gameShapeSorter = '/games/shapes';
   static const String gameColorMatch = '/games/colors';
@@ -35,9 +49,16 @@ abstract final class Routes {
   static const String gameCountTap = '/games/count';
   static const String gamePattern = '/games/pattern';
   static const String gameOddOneOut = '/games/odd';
+  static const String learn = '/learn';
+  static const String learnStory = '/learn/story';
+  static const String learnStoryPlayer = '/learn/story/player';
+  static const String learnAbc = '/learn/abc';
+  static const String learnPoems = '/learn/poems';
   static const String stickers = '/stickers';
   static const String paywall = '/paywall';
   static const String settings = '/settings';
+  static const String admin = '/admin';
+  static const String soundLab = '/dev/sounds';
 }
 
 /// Single source of truth for navigation. Declarative + deep-link ready.
@@ -64,6 +85,19 @@ final GoRouter appRouter = GoRouter(
       ],
     ),
     GoRoute(
+      path: Routes.creative,
+      builder: (_, __) => const CreativeHubScreen(),
+      routes: <RouteBase>[
+        GoRoute(
+          path: 'draw',
+          builder: (_, GoRouterState state) => CreativeDrawScreen(
+            guideId: state.uri.queryParameters['guide'] ?? kFreeDrawId,
+          ),
+        ),
+        GoRoute(path: 'art', builder: (_, __) => const MyArtScreen()),
+      ],
+    ),
+    GoRoute(
       path: Routes.games,
       builder: (_, __) => const GamesHubScreen(),
       routes: <RouteBase>[
@@ -76,8 +110,28 @@ final GoRouter appRouter = GoRouter(
         GoRoute(path: 'odd', builder: (_, __) => const OddOneOutScreen()),
       ],
     ),
+    GoRoute(
+      path: Routes.learn,
+      builder: (_, __) => const LearnHubScreen(),
+      routes: <RouteBase>[
+        GoRoute(
+          path: 'story',
+          builder: (_, __) => const DailyStoryScreen(),
+          routes: <RouteBase>[
+            GoRoute(
+              path: 'player',
+              builder: (_, __) => const StoryPlayerScreen(),
+            ),
+          ],
+        ),
+        GoRoute(path: 'abc', builder: (_, __) => const AbcTutorialScreen()),
+        GoRoute(path: 'poems', builder: (_, __) => const PoemScreen()),
+      ],
+    ),
     GoRoute(path: Routes.stickers, builder: (_, __) => const StickerRoomScreen()),
     GoRoute(path: Routes.paywall, builder: (_, __) => const PaywallScreen()),
     GoRoute(path: Routes.settings, builder: (_, __) => const SettingsScreen()),
+    GoRoute(path: Routes.admin, builder: (_, __) => const AdminPanelScreen()),
+    GoRoute(path: Routes.soundLab, builder: (_, __) => const SoundLabScreen()),
   ],
 );

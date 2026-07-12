@@ -1,14 +1,52 @@
+import 'package:brightmind_kids/src/core/services/sound_settings_store.dart';
 import 'package:brightmind_kids/src/features/games/pattern/data/pattern_element.dart';
 import 'package:brightmind_kids/src/features/games/pattern/view_model/pattern_view_model.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// Sound off so the view-model's fire-and-forget audio calls are no-ops in
+/// tests.
+class _SilentSoundStore implements SoundSettingsStore {
+  @override
+  SoundSettings read() => const SoundSettings(soundEnabled: false);
+
+  @override
+  void save(SoundSettings settings) {}
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  // The real AudioService builds audioplayers/flutter_tts on construction,
+  // which hit platform channels that don't exist under flutter_test. Stub them
+  // so the view-model's audio dependency is harmless.
+  setUpAll(() {
+    final TestDefaultBinaryMessenger messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    for (final String channel in <String>[
+      'flutter_tts',
+      'xyz.luan/audioplayers.global',
+      'xyz.luan/audioplayers',
+    ]) {
+      messenger.setMockMethodCallHandler(
+        MethodChannel(channel),
+        (MethodCall call) async => null,
+      );
+    }
+  });
+
   late ProviderContainer container;
   PatternState read() => container.read(patternProvider);
   PatternViewModel vm() => container.read(patternProvider.notifier);
 
-  setUp(() => container = ProviderContainer());
+  setUp(
+    () => container = ProviderContainer(
+      overrides: <Override>[
+        soundSettingsStoreProvider.overrideWithValue(_SilentSoundStore()),
+      ],
+    ),
+  );
   tearDown(() => container.dispose());
 
   group('PatternViewModel generation', () {

@@ -23,3 +23,4 @@ lib/src/l10n/app_localizations*.dart
 .env
 *.keystore
 key.properties
+.claude/
