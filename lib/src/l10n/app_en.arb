@@ -16,6 +16,18 @@
   "buddyBoy": "Boy",
   "letsGo": "Let's Go!",
 
+  "welcomeSkip": "Skip",
+  "welcomeNext": "Next",
+  "welcomeBadgeColoring": "Coloring Studio",
+  "welcomeColoringTitle": "Tap. Fill. Shine!",
+  "welcomeColoringSubtitle": "Turn every line into color with one happy tap.",
+  "welcomeBadgeGames": "Brain Games",
+  "welcomeGamesTitle": "Play Smart, Grow Smart",
+  "welcomeGamesSubtitle": "Seven playful games made for growing minds.",
+  "welcomeBadgeRewards": "Rewards",
+  "welcomeRewardsTitle": "Every Try Earns a Cheer",
+  "welcomeRewardsSubtitle": "Collect stickers and keep the streak glowing.",
+
   "homeGreeting": "Hi {name}!",
   "@homeGreeting": {
     "description": "Greeting on the home screen",

@@ -7,8 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../profile/view_model/profile_view_model.dart';
 
-/// S1 · Splash. Brand moment, then routes to onboarding on first run, or
-/// straight to Home once a profile has been saved.
+/// S1 · Splash. Brand moment, then routes to the welcome flow on first run,
+/// or straight to Home once a profile has been saved.
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -35,9 +35,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
     _timer = Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
-      // Returning children skip setup and land on Home.
+      // Returning children skip setup and land on Home. First-run children
+      // see the welcome flow before the name/age/buddy setup screen.
       final bool onboarded = ref.read(profileProvider) != null;
-      context.go(onboarded ? Routes.home : Routes.onboarding);
+      context.go(onboarded ? Routes.home : Routes.welcome);
     });
   }
 

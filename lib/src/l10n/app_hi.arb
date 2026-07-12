@@ -14,6 +14,18 @@
   "buddyBoy": "लड़का",
   "letsGo": "चलो शुरू करें!",
 
+  "welcomeSkip": "छोड़ें",
+  "welcomeNext": "आगे",
+  "welcomeBadgeColoring": "कलरिंग स्टूडियो",
+  "welcomeColoringTitle": "टैप करो। भरो। चमको!",
+  "welcomeColoringSubtitle": "एक हल्के टैप से हर रेखा में रंग भरो।",
+  "welcomeBadgeGames": "दिमागी खेल",
+  "welcomeGamesTitle": "समझदारी से खेलो, समझदारी से बढ़ो",
+  "welcomeGamesSubtitle": "बढ़ते दिमाग के लिए सात मज़ेदार खेल।",
+  "welcomeBadgeRewards": "इनाम",
+  "welcomeRewardsTitle": "हर कोशिश पर मिले तालियाँ",
+  "welcomeRewardsSubtitle": "स्टिकर जमा करो और अपनी लय जलाए रखो।",
+
   "homeGreeting": "नमस्ते {name}!",
   "homeGreetingNoName": "नमस्ते!",
   "tileColor": "रंग भरो!",

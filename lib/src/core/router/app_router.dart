@@ -24,6 +24,7 @@ import '../../features/games/shared/games_hub_screen.dart';
 import '../../features/home/view/home_screen.dart';
 import '../../features/onboarding/view/onboarding_screen.dart';
 import '../../features/onboarding/view/splash_screen.dart';
+import '../../features/onboarding/view/welcome_screen.dart';
 import '../../features/admin/view/admin_panel_screen.dart';
 import '../../features/paywall/view/paywall_screen.dart';
 import '../../features/settings/view/settings_screen.dart';
@@ -33,6 +34,7 @@ import '../../features/stickers/view/sticker_room_screen.dart';
 abstract final class Routes {
   const Routes._();
   static const String splash = '/';
+  static const String welcome = '/welcome';
   static const String onboarding = '/onboarding';
   static const String home = '/home';
   static const String gallery = '/coloring';
@@ -66,6 +68,7 @@ final GoRouter appRouter = GoRouter(
   initialLocation: Routes.splash,
   routes: <RouteBase>[
     GoRoute(path: Routes.splash, builder: (_, __) => const SplashScreen()),
+    GoRoute(path: Routes.welcome, builder: (_, __) => const WelcomeScreen()),
     GoRoute(path: Routes.onboarding, builder: (_, __) => const OnboardingScreen()),
     GoRoute(path: Routes.home, builder: (_, __) => const HomeScreen()),
     GoRoute(
