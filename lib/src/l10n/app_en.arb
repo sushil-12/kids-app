@@ -12,7 +12,9 @@
   "ageBand56": "5–6 years",
   "pickBuddy": "Pick a buddy!",
   "pickBuddyHint": "They'll cheer you on!",
-  "letsGo": "Let's Go! 🚀",
+  "buddyGirl": "Girl",
+  "buddyBoy": "Boy",
+  "letsGo": "Let's Go!",
 
   "homeGreeting": "Hi {name}!",
   "@homeGreeting": {
@@ -59,6 +61,7 @@
   "toolBrush": "Brush",
   "toolErase": "Erase",
   "toolUndo": "Undo",
+  "toolClear": "Clear",
   "doneButton": "Done!",
   "pickAColor": "Pick a color, then tap the picture!",
   "coloringModeFree": "Free",
@@ -74,6 +77,25 @@
   },
   "save": "Save",
   "colorAgain": "Again!",
+
+  "tileCreate": "Create!",
+  "tileCreateSubtitle": "Free-draw & trace",
+  "creativeHubTitle": "Create & Draw",
+  "creativeFreeDraw": "Blank page",
+  "creativeShapes": "Trace shapes",
+  "creativeFruits": "Trace fruits",
+  "creativeMyArt": "My Art",
+  "creativeTrace": "Trace the lines, then color it in!",
+  "creativeEmptyArt": "Your drawings will appear here",
+  "shapeCircle": "Circle",
+  "shapeSquare": "Square",
+  "shapeTriangle": "Triangle",
+  "shapeStar": "Star",
+  "shapeHeart": "Heart",
+  "fruitApple": "Apple",
+  "fruitBanana": "Banana",
+  "fruitPear": "Pear",
+  "fruitGrapes": "Grapes",
 
   "gamesTitle": "Brain Games!",
   "gameShapeSorter": "Shape Sorter",
@@ -171,5 +193,68 @@
   "newStoryButton": "New Story",
   "newPoemButton": "New Poem",
   "prevLetter": "Back",
-  "nextLetter": "Next"
+  "nextLetter": "Next",
+  "abcLetterForWord": "{letter} for {word}",
+  "@abcLetterForWord": {
+    "description": "Spoken phonics phrase, e.g. 'A for Apple'",
+    "placeholders": {
+      "letter": { "type": "String", "example": "A" },
+      "word": { "type": "String", "example": "Apple" }
+    }
+  },
+  "tapToHear": "Tap to hear",
+
+  "watchStoryButton": "Watch the story!",
+  "storyTheEnd": "The End",
+  "storyRewardLine": "You earned {stars} stars and {coins} coins!",
+  "@storyRewardLine": {
+    "description": "Reward summary on the story end card",
+    "placeholders": {
+      "stars": { "type": "int", "example": "10" },
+      "coins": { "type": "int", "example": "5" }
+    }
+  },
+  "storyWatchAgain": "Watch again",
+  "storyAllDone": "All done!",
+  "storySkip": "Skip",
+
+  "parentGateTitle": "Grown-ups only",
+  "parentGateInstruction": "Ask a grown-up: what is {a} + {b}?",
+  "@parentGateInstruction": {
+    "placeholders": {
+      "a": { "type": "int" },
+      "b": { "type": "int" }
+    }
+  },
+  "parentGateWrong": "Not quite — try again",
+  "parentGateContinue": "Continue",
+
+  "adminTitle": "Content Admin",
+  "adminKeyLabel": "Admin key",
+  "adminKeyHint": "Paste your admin key",
+  "adminNoKey": "Enter your admin key to manage content. It is stored only on this device.",
+  "adminClearKey": "Clear",
+  "adminRefresh": "Refresh",
+  "adminStatsTitle": "Library stats",
+  "adminStatsError": "Couldn't load stats. Check the key and that the backend is running.",
+  "adminStatStories": "Stories",
+  "adminStatPoems": "Poems",
+  "adminStatAbc": "ABC lessons",
+  "adminStatAiToday": "AI calls today",
+  "adminStatCrawledWeek": "Crawled this week",
+  "adminCrawlTitle": "Trigger a crawl",
+  "adminCrawlUrlHint": "Page URL to crawl",
+  "adminCrawlType": "Content type",
+  "adminCrawlButton": "Crawl now",
+  "adminSourcesTitle": "Crawl sources",
+  "adminSourcesEmpty": "No crawl sources yet.",
+  "adminNeverCrawled": "never crawled",
+  "adminLogTitle": "Activity",
+  "adminLogEmpty": "Actions you perform will show up here.",
+  "contentTypeStory": "Story",
+  "contentTypePoem": "Poem",
+  "contentTypeAbc": "ABC",
+  "statusPending": "Pending",
+  "statusSuccess": "Success",
+  "statusFailed": "Failed"
 }

@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/router/locale_controller.dart';
+import '../../../core/services/sound_settings_store.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../admin/view/parent_gate.dart';
 import '../../profile/data/child_profile.dart';
 import '../../profile/view_model/profile_view_model.dart';
 
@@ -40,6 +42,23 @@ class SettingsScreen extends ConsumerWidget {
                   ref.read(localeControllerProvider.notifier).setLocale(value),
             ),
           ),
+          // Voice + sound-effects master switch (House Rule §5: sound is core
+          // to how young children learn). Flips the whole AudioService silent.
+          SwitchListTile(
+            secondary: const Icon(Icons.volume_up),
+            title: Text(l10n.soundsAndMusic),
+            value: ref.watch(
+              soundSettingsProvider.select((SoundSettings s) => s.soundEnabled),
+            ),
+            onChanged: (bool value) =>
+                ref.read(soundSettingsProvider.notifier).setSoundEnabled(value),
+          ),
+          // Developer tool to audition every SFX + voice line on-device.
+          ListTile(
+            leading: const Icon(Icons.graphic_eq),
+            title: const Text('Sound Lab'),
+            onTap: () => context.push(Routes.soundLab),
+          ),
           // Age band only appears once a profile exists (i.e. post-onboarding).
           if (profile != null)
             ListTile(
@@ -67,6 +86,15 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.privacy_tip),
             title: Text(l10n.privacyPolicy),
+          ),
+          // Grown-up-only content tools — guarded by the parent gate (§7).
+          ListTile(
+            leading: const Icon(Icons.admin_panel_settings_outlined),
+            title: Text(l10n.adminTitle),
+            onTap: () async {
+              final bool ok = await showParentGate(context);
+              if (ok && context.mounted) context.push(Routes.admin);
+            },
           ),
           if (profile != null)
             ListTile(

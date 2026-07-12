@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/audio_service.dart';
 import '../../../../core/services/feature_flags.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../adaptive/data/difficulty.dart';
@@ -163,6 +164,7 @@ class OddOneOutViewModel extends Notifier<OddOneOutState> {
     if (state.solved || state.completed) return;
     if (index == state.oddIndex) {
       state = state.copyWith(solved: true);
+      ref.read(audioServiceProvider).sfx(Sfx.chime);
       if (ref.read(featureFlagsProvider).adaptiveDifficulty) {
         ref
             .read(adaptiveProvider.notifier)

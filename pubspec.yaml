@@ -33,6 +33,7 @@ dependencies:
 
   # Audio (pooled SFX) & vector animation.
   audioplayers: ^6.1.0
+  flutter_tts: ^4.2.0   # spoken voice / phonics (localized en + hi)
   rive: ^0.13.20
 
   # HTTP client for AI API calls.
@@ -41,6 +42,8 @@ dependencies:
   # Misc.
   path_provider: ^2.1.5
   equatable: ^2.0.7
+  path_drawing: ^1.0.1   # parses backend SVG path strings into Flutter Paths
+  xml: ^6.5.0            # parses SVG asset files for direct coloring page import
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +67,8 @@ flutter:
   assets:
     - assets/coloring_pages/
     - assets/audio/
+    - assets/audio/music/
     - assets/rive/
     - assets/images/
+    - assets/images/avatars/
     - assets/logos/

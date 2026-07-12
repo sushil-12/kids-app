@@ -1,30 +1,34 @@
 import 'dart:convert';
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/router/locale_controller.dart';
 import '../../../core/services/backend_service.dart';
 import '../../../features/profile/data/child_profile.dart';
 import '../../../features/profile/view_model/profile_view_model.dart';
+import '../data/cinematic_fallbacks.dart';
+import '../data/cinematic_story.dart';
 import '../data/content_cache.dart';
 import '../data/learn_content.dart';
 
 // ---------------------------------------------------------------------------
-// Content resolution — 3 tiers, cheapest first:
+// Content resolution — backend-first, with offline fallback:
 //
-//  Tier 1  Static dataset (ships in APK)     → instant, zero cost
-//  Tier 2  Hive cache (device-local)          → instant, zero cost
-//  Tier 3  Backend API                        → network call; backend decides
-//          └─ Backend internally: DB → Redis → OpenAI (with daily cap)
-//             The app doesn't know or care which backend tier was used.
+//  Tier 1  Hive cache (device-local)   → instant, zero cost, survives offline
+//  Tier 2  Backend API                 → live source; the backend internally
+//          └─ DB → Redis → OpenAI (with a daily cap). The app neither knows
+//             nor cares which backend tier answered.
+//  Tier 3  Static dataset (LearnFallbacks, bundled in the APK) → the safety
+//          net when the backend is unreachable or unconfigured.
 //
-// ABC lessons never leave Tier 1 — full A–Z is pre-written in the app.
-// Stories  → Tier 3 at most once per day per age band, result cached in Hive.
-// Poems    → Tier 1 on first load; Tier 3 only on explicit "New Poem" tap.
+// The app never calls OpenAI directly anymore — that moved server-side.
+// Each item is fetched from the backend once, then served from Hive.
 // ---------------------------------------------------------------------------
 
 String _todayKey() => DateTime.now().toIso8601String().substring(0, 10);
 
-/// Increment to request a fresh story (new Hive key, triggers backend call).
+/// Increment to request a fresh story (new Hive key, triggers a backend call).
 final storyRefreshProvider = StateProvider<int>((_) => 0);
 
 /// Increment to request a fresh poem for the current topic.
@@ -41,18 +45,17 @@ final dailyStoryProvider = FutureProvider.autoDispose<DailyStory>((
   final ChildProfile? profile = ref.watch(profileProvider);
   final AgeBand band = profile?.ageBand ?? AgeBand.junior;
 
+  // Key includes the date so the story refreshes naturally each day; the
+  // refresh counter lets the child ask for another story while keeping today's.
   final String key = 'story_${band.name}_${_todayKey()}_r$refresh';
 
-  // Tier 2: Hive cache — same story served instantly for the rest of the day.
   final String? cached = await cache.get(key);
   if (cached != null) {
     return DailyStory.fromJson(jsonDecode(cached) as Map<String, dynamic>);
   }
 
-  // Tier 1: no backend key configured — serve bundled fallback.
   if (!backend.isConfigured) return LearnFallbacks.story;
 
-  // Tier 3: backend call — result cached so this runs at most once per day.
   try {
     final DailyStory story = await backend.fetchDailyStory(band);
     await cache.set(key, jsonEncode(story.toJson()));
@@ -62,26 +65,78 @@ final dailyStoryProvider = FutureProvider.autoDispose<DailyStory>((
   }
 });
 
+// ── Cinematic Story ─────────────────────────────────────────────────────────
+// The scene-based interactive story the player screen renders. Same 3-tier
+// flow as the flat daily story; keyed additionally by language so switching
+// the app to Hindi fetches the Hindi script.
+
+final cinematicStoryProvider = FutureProvider.autoDispose<CinematicStory>((
+  Ref ref,
+) async {
+  final int refresh = ref.watch(storyRefreshProvider);
+  final BackendService backend = ref.watch(backendServiceProvider);
+  final ContentCache cache = ref.watch(contentCacheProvider);
+  final ChildProfile? profile = ref.watch(profileProvider);
+  final AgeBand band = profile?.ageBand ?? AgeBand.junior;
+  final Locale locale = ref.watch(localeControllerProvider) ??
+      PlatformDispatcher.instance.locale;
+  final String lang = locale.languageCode == 'hi' ? 'hi' : 'en';
+
+  final String key = 'cine_${band.name}_${lang}_${_todayKey()}_r$refresh';
+
+  final String? cached = await cache.get(key);
+  if (cached != null) {
+    return CinematicStory.fromJson(jsonDecode(cached) as Map<String, dynamic>);
+  }
+
+  if (!backend.isConfigured) return CinematicFallbacks.storyFor(lang);
+
+  try {
+    final CinematicStory story = await backend.fetchCinematicStory(band, lang);
+    await cache.set(key, jsonEncode(story.toJson()));
+    return story;
+  } catch (_) {
+    return CinematicFallbacks.storyFor(lang);
+  }
+});
+
 // ── ABC Lessons ─────────────────────────────────────────────────────────────
-// Tier 1 only — full A–Z ships with the app. No network call, ever.
-// When the backend's own ABC dataset becomes richer, swap this to a backend
-// call with a long Hive TTL (e.g. refresh weekly).
+// Backend-served so curated/crawled lessons can evolve, cached per letter,
+// with the bundled A–Z dataset as the offline fallback.
 
 final abcLessonProvider =
     FutureProvider.autoDispose.family<AbcLesson, String>((
   AutoDisposeFutureProviderRef<AbcLesson> ref,
   String letter,
 ) async {
-  return LearnFallbacks.abcLessons.firstWhere(
-    (AbcLesson l) => l.letter == letter,
-    orElse: () => LearnFallbacks.abcLessons.first,
-  );
+  final BackendService backend = ref.watch(backendServiceProvider);
+  final ContentCache cache = ref.watch(contentCacheProvider);
+
+  AbcLesson staticFallback() => LearnFallbacks.abcLessons.firstWhere(
+        (AbcLesson l) => l.letter == letter,
+        orElse: () => LearnFallbacks.abcLessons.first,
+      );
+
+  if (!backend.isConfigured) return staticFallback();
+
+  final String key = 'abc_$letter';
+  final String? cached = await cache.get(key);
+  if (cached != null) {
+    return AbcLesson.fromJson(jsonDecode(cached) as Map<String, dynamic>);
+  }
+
+  try {
+    final AbcLesson lesson = await backend.fetchAbcLesson(letter);
+    await cache.set(key, jsonEncode(lesson.toJson()));
+    return lesson;
+  } catch (_) {
+    return staticFallback();
+  }
 });
 
 // ── Poems ────────────────────────────────────────────────────────────────────
-// Tier 1 on first load (refresh == 0).
-// Tier 2 on revisit (cached from a previous refresh).
-// Tier 3 only when the user explicitly taps "New Poem" (refresh > 0).
+// Backend-served by topic, cached per (topic, refresh). The "New Poem" FAB
+// bumps [poemRefreshProvider] to fetch fresh content from the backend.
 
 final poemProvider = FutureProvider.autoDispose.family<KidsPoem, String>((
   AutoDisposeFutureProviderRef<KidsPoem> ref,
@@ -91,15 +146,13 @@ final poemProvider = FutureProvider.autoDispose.family<KidsPoem, String>((
   final BackendService backend = ref.watch(backendServiceProvider);
   final ContentCache cache = ref.watch(contentCacheProvider);
 
-  // Tier 1: bundled poem on first load.
-  if (refresh == 0) {
-    return LearnFallbacks.poems.firstWhere(
-      (KidsPoem p) => p.topic == topic,
-      orElse: () => LearnFallbacks.poems.first,
-    );
-  }
+  KidsPoem staticFallback() => LearnFallbacks.poems.firstWhere(
+        (KidsPoem p) => p.topic == topic,
+        orElse: () => LearnFallbacks.poems.first,
+      );
 
-  // Tier 2: Hive cache for a previously fetched poem at this refresh index.
+  if (!backend.isConfigured) return staticFallback();
+
   final String slug = topic.toLowerCase().replaceAll(' ', '_');
   final String key = 'poem_${slug}_r$refresh';
   final String? cached = await cache.get(key);
@@ -107,23 +160,11 @@ final poemProvider = FutureProvider.autoDispose.family<KidsPoem, String>((
     return KidsPoem.fromJson(jsonDecode(cached) as Map<String, dynamic>);
   }
 
-  // Tier 1 fallback when backend not configured.
-  if (!backend.isConfigured) {
-    return LearnFallbacks.poems.firstWhere(
-      (KidsPoem p) => p.topic == topic,
-      orElse: () => LearnFallbacks.poems.first,
-    );
-  }
-
-  // Tier 3: user explicitly asked for something new.
   try {
     final KidsPoem poem = await backend.fetchPoem(topic);
     await cache.set(key, jsonEncode(poem.toJson()));
     return poem;
   } catch (_) {
-    return LearnFallbacks.poems.firstWhere(
-      (KidsPoem p) => p.topic == topic,
-      orElse: () => LearnFallbacks.poems.first,
-    );
+    return staticFallback();
   }
 });

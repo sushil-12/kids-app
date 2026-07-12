@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/audio_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -100,6 +102,10 @@ class ColorMatchViewModel extends Notifier<ColorMatchState> {
     if (state.completed || state.found.contains(index)) return;
     if (state.items[index] != state.target) return;
     state = state.copyWith(found: <int>{...state.found, index});
+    // Reinforce the color name on every correct find.
+    final AudioService audio = ref.read(audioServiceProvider);
+    audio.sfx(Sfx.chime);
+    unawaited(audio.speakColor(state.target.color));
   }
 
   /// Advances to the next round, or finishes the game after the last one.

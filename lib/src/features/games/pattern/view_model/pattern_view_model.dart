@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/audio_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../shared/shape_view.dart';
 import '../data/pattern_element.dart';
@@ -151,6 +152,7 @@ class PatternViewModel extends Notifier<PatternState> {
     if (state.solved || state.completed) return;
     if (optionIndex == state.answerIndex) {
       state = state.copyWith(solved: true);
+      ref.read(audioServiceProvider).sfx(Sfx.chime);
     }
   }
 

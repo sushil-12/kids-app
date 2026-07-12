@@ -129,7 +129,23 @@ class _ClappingBuddyState extends ConsumerState<_ClappingBuddy>
               const SizedBox(width: 4),
               Transform.translate(
                 offset: Offset(0, -6 * t),
-                child: Text(buddy.emoji, style: const TextStyle(fontSize: 52)),
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.25),
+                    border: Border.all(color: Colors.white, width: 2.5),
+                  ),
+                  padding: const EdgeInsets.all(3),
+                  child: ClipOval(
+                    child: Image.asset(
+                      buddy.assetPath,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(width: 4),
               Transform.translate(

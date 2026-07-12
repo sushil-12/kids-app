@@ -131,6 +131,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
+                  SizedBox(
+                    height: 96,
+                    child: _ActivityTile(
+                      label: l10n.tileCreate,
+                      subtitle: l10n.tileCreateSubtitle,
+                      color: AppColors.pink,
+                      icon: Icons.palette_rounded,
+                      onTap: () => context.push(Routes.creative),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   _StickerProgress(
                     earned: rewards.earned,
                     total: rewards.total,
@@ -179,7 +190,14 @@ class _Header extends StatelessWidget {
               border: Border.all(color: buddy.color, width: 3),
             ),
             alignment: Alignment.center,
-            child: Text(buddy.emoji, style: const TextStyle(fontSize: 32)),
+            padding: const EdgeInsets.all(4),
+            child: ClipOval(
+              child: Image.asset(
+                buddy.assetPath,
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 14),
@@ -446,28 +464,54 @@ class _ActivityTile extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              CircleAvatar(
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              // Short, wide slots (e.g. the full-width Learn tile) lay the icon
+              // out beside the text; tall square tiles stack it on top.
+              final bool horizontal = constraints.maxHeight < 120;
+              final Widget avatar = CircleAvatar(
                 radius: 28,
                 backgroundColor: Colors.white,
                 child: Icon(icon, size: 30, color: color),
-              ),
-              const Spacer(),
-              Text(
-                label,
-                style: theme.textTheme.headlineSmall
-                    ?.copyWith(color: Colors.white),
-              ),
-              Text(
-                subtitle,
-                style:
-                    theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              );
+              final Widget labels = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    label,
+                    style: theme.textTheme.headlineSmall
+                        ?.copyWith(color: Colors.white),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: Colors.white70),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              );
+              if (horizontal) {
+                return Row(
+                  children: <Widget>[
+                    avatar,
+                    const SizedBox(width: 16),
+                    Expanded(child: labels),
+                  ],
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  avatar,
+                  const Spacer(),
+                  labels,
+                ],
+              );
+            },
           ),
         ),
       ),

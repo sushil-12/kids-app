@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import '../../features/learn/data/cinematic_story.dart';
 import '../../features/learn/data/learn_content.dart';
 import '../../features/profile/data/child_profile.dart';
 
@@ -40,14 +42,27 @@ class BackendService {
 
   Future<Map<String, dynamic>> _get(String path) async {
     final Uri uri = Uri.parse('$_kBaseUrl$path');
-    final http.Response response = await http
-        .get(uri, headers: _headers)
-        .timeout(const Duration(seconds: 10));
+    try {
+      final http.Response response = await http
+          .get(uri, headers: _headers)
+          .timeout(const Duration(seconds: 10));
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 200) {
+        if (kDebugMode) debugPrint('[backend] 200 GET $path');
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      if (kDebugMode) {
+        debugPrint('[backend] ${response.statusCode} GET $path → ${response.body}');
+      }
+      throw BackendException(response.statusCode, response.body);
+    } on BackendException {
+      rethrow;
+    } catch (e) {
+      // Network/timeout/parse failure — surface it so callers fall back, but
+      // make it visible during development why content went static.
+      if (kDebugMode) debugPrint('[backend] FAILED GET $uri → $e');
+      rethrow;
     }
-    throw BackendException(response.statusCode, response.body);
   }
 
   Future<DailyStory> fetchDailyStory(AgeBand band) async {
@@ -62,6 +77,16 @@ class BackendService {
       emoji: j['emoji'] as String,
       date: j['generatedAt'] as String? ?? '',
     );
+  }
+
+  /// Today's cinematic scene-script story for the band + language. The
+  /// backend returns 503 while it generates a fresh one — callers fall back
+  /// to the bundled offline story.
+  Future<CinematicStory> fetchCinematicStory(AgeBand band, String lang) async {
+    final String bandName = band == AgeBand.junior ? 'junior' : 'senior';
+    final Map<String, dynamic> j =
+        await _get('/v1/stories/cinematic/daily?ageBand=$bandName&lang=$lang');
+    return CinematicStory.fromJson(j);
   }
 
   Future<KidsPoem> fetchPoem(String topic) async {

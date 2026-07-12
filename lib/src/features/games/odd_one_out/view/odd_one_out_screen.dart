@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/audio_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../rewards/view/win_celebration.dart';
@@ -80,7 +81,7 @@ class OddOneOutScreen extends ConsumerWidget {
 /// A single grid tile. The odd one calls [onCorrect]; matching tiles wobble on
 /// tap (no fail state). Once [found], the odd tile glows so the child sees what
 /// they spotted before the next round.
-class _OddTile extends StatefulWidget {
+class _OddTile extends ConsumerStatefulWidget {
   const _OddTile({
     required this.item,
     required this.isOdd,
@@ -94,10 +95,11 @@ class _OddTile extends StatefulWidget {
   final VoidCallback onCorrect;
 
   @override
-  State<_OddTile> createState() => _OddTileState();
+  ConsumerState<_OddTile> createState() => _OddTileState();
 }
 
-class _OddTileState extends State<_OddTile> with SingleTickerProviderStateMixin {
+class _OddTileState extends ConsumerState<_OddTile>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _wobble = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 400),
@@ -115,6 +117,7 @@ class _OddTileState extends State<_OddTile> with SingleTickerProviderStateMixin 
       widget.onCorrect();
     } else {
       _wobble.forward(from: 0);
+      ref.read(audioServiceProvider).sfx(Sfx.wobble); // gentle "not that one"
     }
   }
 

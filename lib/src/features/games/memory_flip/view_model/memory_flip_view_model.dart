@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/audio_service.dart';
+
 /// One card in the grid. [symbol] is shared by its pair.
 @immutable
 class MemoryCard {
@@ -85,6 +87,9 @@ class MemoryFlipViewModel extends Notifier<MemoryFlipState> {
     final List<MemoryCard> cards = List<MemoryCard>.of(state.cards);
     cards[index] = card.copyWith(faceUp: true);
 
+    final AudioService audio = ref.read(audioServiceProvider);
+    audio.sfx(Sfx.flip); // every flip gets a satisfying turn sound
+
     final int? first = state.firstIndex;
     if (first == null) {
       state = state.copyWith(cards: cards, firstIndex: index);
@@ -95,6 +100,7 @@ class MemoryFlipViewModel extends Notifier<MemoryFlipState> {
       cards[first] = cards[first].copyWith(matched: true);
       cards[index] = cards[index].copyWith(matched: true);
       state = state.copyWith(cards: cards, clearFirst: true);
+      audio.sfx(Sfx.chime); // a pair! cheerful confirm
     } else {
       // Show both, then the view calls [hideMismatch] after a beat.
       state = state.copyWith(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../core/router/app_router.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../data/learn_content.dart';
 import '../view_model/learn_providers.dart';
 
@@ -67,6 +69,23 @@ class _StoryView extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          // The cinematic version of today's story — the hero experience.
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.purple,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            onPressed: () => context.push(Routes.learnStoryPlayer),
+            icon: const Text('🎬', style: TextStyle(fontSize: 22)),
+            label: Text(
+              l10n.watchStoryButton,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           const SizedBox(height: 24),
           Container(

@@ -5,6 +5,11 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import 'src/app/app.dart';
 import 'src/core/services/feature_flags.dart';
+import 'src/core/services/sound_settings_store.dart';
+import 'src/features/admin/data/admin_key_store.dart';
+import 'src/features/admin/view_model/admin_view_model.dart';
+import 'src/features/creative_canvas/data/creative_store.dart';
+import 'src/features/creative_canvas/view_model/my_art_view_model.dart';
 import 'src/features/learn/data/content_cache.dart';
 import 'src/features/adaptive/data/adaptive_repository.dart';
 import 'src/features/adaptive/view_model/adaptive_view_model.dart';
@@ -32,6 +37,15 @@ Future<void> main() async {
   final Box<dynamic> adaptiveBox =
       await Hive.openBox<dynamic>(HiveAdaptiveStore.boxName);
   final Box<String> learnBox = await Hive.openBox<String>('learn_content');
+  // Parent-gated admin panel: stores the backend admin key on-device only.
+  final Box<dynamic> adminBox =
+      await Hive.openBox<dynamic>(HiveAdminKeyStore.boxName);
+  // Parent sound preferences (master Sounds & Music switch).
+  final Box<dynamic> settingsBox =
+      await Hive.openBox<dynamic>(HiveSoundSettingsStore.boxName);
+  // Creative Canvas: the child's saved drawings (base64 PNGs), on-device only.
+  final Box<dynamic> creativeBox =
+      await Hive.openBox<dynamic>(HiveCreativeStore.boxName);
 
   // Kids' app: lock to portrait for a predictable, simple layout.
   await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
@@ -51,6 +65,12 @@ Future<void> main() async {
             .overrideWithValue(HiveAdaptiveStore(adaptiveBox)),
         contentCacheProvider
             .overrideWithValue(HiveContentCache(learnBox)),
+        adminKeyStoreProvider
+            .overrideWithValue(HiveAdminKeyStore(adminBox)),
+        soundSettingsStoreProvider
+            .overrideWithValue(HiveSoundSettingsStore(settingsBox)),
+        creativeStoreProvider
+            .overrideWithValue(HiveCreativeStore(creativeBox)),
       ],
       child: const BrightMindApp(),
     ),

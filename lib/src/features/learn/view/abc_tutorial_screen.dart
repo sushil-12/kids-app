@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../core/services/audio_service.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../data/learn_content.dart';
 import '../view_model/learn_providers.dart';
 
@@ -108,7 +109,8 @@ class _AbcTutorialScreenState extends ConsumerState<AbcTutorialScreen> {
                   error: (_, __) => const Center(
                     child: CircularProgressIndicator(color: AppColors.teal),
                   ),
-                  data: (AbcLesson lesson) => _LessonPage(lesson: lesson),
+                  data: (AbcLesson lesson) =>
+                      _LessonPage(lesson: lesson, isActive: i == _currentIndex),
                 );
               },
             ),
@@ -151,13 +153,41 @@ class _AbcTutorialScreenState extends ConsumerState<AbcTutorialScreen> {
   }
 }
 
-class _LessonPage extends StatelessWidget {
-  const _LessonPage({required this.lesson});
+class _LessonPage extends ConsumerStatefulWidget {
+  const _LessonPage({required this.lesson, required this.isActive});
 
   final AbcLesson lesson;
 
+  /// True when this is the visible page, so we only speak the active letter.
+  final bool isActive;
+
+  @override
+  ConsumerState<_LessonPage> createState() => _LessonPageState();
+}
+
+class _LessonPageState extends ConsumerState<_LessonPage> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isActive) _speak();
+  }
+
+  @override
+  void didUpdateWidget(_LessonPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Speak when this page slides into view (or its letter changes).
+    if (widget.isActive &&
+        (!oldWidget.isActive || oldWidget.lesson.letter != widget.lesson.letter)) {
+      _speak();
+    }
+  }
+
+  void _speak() => ref.read(audioServiceProvider).speakLetter(widget.lesson);
+
   @override
   Widget build(BuildContext context) {
+    final AbcLesson lesson = widget.lesson;
+    final AppLocalizations l10n = AppLocalizations.of(context);
     final ThemeData theme = Theme.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
@@ -166,7 +196,7 @@ class _LessonPage extends StatelessWidget {
           // Giant letter
           Text(
             lesson.letter,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 120,
               fontWeight: FontWeight.bold,
               color: AppColors.coral,
@@ -188,6 +218,20 @@ class _LessonPage extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          // Tap to hear "A for Apple" / "A — सेब" again.
+          FilledButton.tonalIcon(
+            onPressed: _speak,
+            icon: const Icon(Icons.volume_up_rounded),
+            label: Text(l10n.tapToHear),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.teal.withValues(alpha: 0.15),
+              foregroundColor: AppColors.teal,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
           ),
           const SizedBox(height: 20),
           // Phonics chip

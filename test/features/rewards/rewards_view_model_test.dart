@@ -8,12 +8,26 @@ import 'package:flutter_test/flutter_test.dart';
 /// tested without any platform setup. Persists across containers like a box.
 class FakeRewardStore implements RewardStore {
   Set<String> _ids = <String>{};
+  int _stars = 0;
+  int _coins = 0;
 
   @override
   Set<String> earnedIds() => <String>{..._ids};
 
   @override
   void save(Set<String> ids) => _ids = <String>{...ids};
+
+  @override
+  int stars() => _stars;
+
+  @override
+  int coins() => _coins;
+
+  @override
+  void saveWallet({required int stars, required int coins}) {
+    _stars = stars;
+    _coins = coins;
+  }
 }
 
 void main() {
@@ -73,6 +87,42 @@ void main() {
     final StickerAward extra = vm().awardRandom();
     expect(extra.isNew, isFalse);
     expect(read().earned, kStickers.length);
+  });
+
+  test('addWallet accumulates stars and coins and persists them', () {
+    vm().addWallet(stars: 10, coins: 5);
+    vm().addWallet(stars: 7, coins: 3);
+
+    expect(read().stars, 17);
+    expect(read().coins, 8);
+    expect(store.stars(), 17);
+    expect(store.coins(), 8);
+  });
+
+  test('addWallet ignores negative amounts — the wallet only grows', () {
+    vm().addWallet(stars: 10, coins: 5);
+    vm().addWallet(stars: -4, coins: -2);
+
+    expect(read().stars, 10);
+    expect(read().coins, 5);
+  });
+
+  test('wallet survives a restart (fresh container, same store)', () {
+    vm().addWallet(stars: 12, coins: 6);
+    container.dispose();
+
+    container = makeContainer();
+    expect(read().stars, 12);
+    expect(read().coins, 6);
+  });
+
+  test('earning a sticker keeps the wallet intact', () {
+    vm().addWallet(stars: 9, coins: 4);
+    vm().awardById('lion');
+
+    expect(read().stars, 9);
+    expect(read().coins, 4);
+    expect(read().contains('lion'), isTrue);
   });
 
   test('earned stickers survive a restart (fresh container, same store)', () {

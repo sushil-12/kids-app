@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/audio_service.dart';
 import '../../games/shared/game_celebration.dart';
 import '../view_model/rewards_view_model.dart';
 
@@ -15,6 +18,10 @@ Future<void> celebrateWin(
   required VoidCallback onPlayAgain,
 }) {
   final StickerAward award = ref.read(rewardsProvider.notifier).awardRandom();
+  // Every finish is a win: cheerful chime + spoken praise (House Rule §5).
+  final AudioService audio = ref.read(audioServiceProvider);
+  audio.sfx(Sfx.win);
+  unawaited(audio.speakPraise());
   return showGameCelebration(
     context,
     onPlayAgain: onPlayAgain,
