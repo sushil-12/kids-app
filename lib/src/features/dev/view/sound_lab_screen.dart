@@ -46,7 +46,8 @@ class SoundLabScreen extends ConsumerWidget {
               child: ListTile(
                 leading: const Icon(Icons.volume_off),
                 title: const Text('Sound is OFF'),
-                subtitle: const Text('Everything below is silent until enabled.'),
+                subtitle:
+                    const Text('Everything below is silent until enabled.'),
                 trailing: FilledButton(
                   onPressed: () => ref
                       .read(soundSettingsProvider.notifier)

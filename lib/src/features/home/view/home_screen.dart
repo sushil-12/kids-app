@@ -3,9 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
+import '../../../core/widgets/clay_icons.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../games/shared/games_catalog.dart';
 import '../../profile/data/buddy.dart';
@@ -14,11 +17,12 @@ import '../../profile/view_model/profile_view_model.dart';
 import '../../rewards/view_model/rewards_view_model.dart';
 import '../../streak/view_model/streak_view_model.dart';
 
-/// S3 · Home (Kid Hub).
+/// S3 · Home (Kid Hub), in the shared "pastel clay" design language.
 ///
-/// A lively dashboard: an animated buddy greeting, a daily-streak tracker,
-/// a rotating "Today's Adventure" pick, the two big activity tiles, and a
-/// sticker-collection progress strip. Soft shapes drift in the background.
+/// Sits on a blue [OnboardingBackground]; every panel is a clay card
+/// (pastel fill, white border, soft tinted drop shadow): buddy greeting,
+/// daily-streak tracker, "Today's Adventure" pick, the activity tiles, and
+/// the sticker-collection progress strip.
 ///
 /// Name, age band and buddy come from the saved profile ([profileProvider]);
 /// the streak and sticker figures are persisted too ([streakProvider] /
@@ -66,35 +70,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final ChildProfile? profile = ref.watch(profileProvider);
     final Buddy buddy = ref.watch(buddyProvider);
     // Surface the games that match the child's age band (fall back to all).
-    final List<GameInfo> ageGames = profile == null
-        ? kGames
-        : gamesForBand(_gameBand(profile.ageBand));
+    final List<GameInfo> ageGames =
+        profile == null ? kGames : gamesForBand(_gameBand(profile.ageBand));
     // A different adventure surfaces each calendar day, from age-fit games.
     final GameInfo daily = ageGames[DateTime.now().day % ageGames.length];
 
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: <Widget>[
-          _FloatingShapes(animation: _ambient),
+          const ClayBackground(tint: AppColors.blue),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _Header(name: profile?.name ?? '', buddy: buddy, bounce: _ambient),
+                  _Header(
+                    name: profile?.name ?? '',
+                    buddy: buddy,
+                    bounce: _ambient,
+                  ),
                   const SizedBox(height: 20),
                   _StreakCard(streakDays: streak.streak),
                   const SizedBox(height: 16),
                   _DailyAdventureCard(
                     title: daily.title(l10n),
-                    icon: daily.icon,
+                    glyph: daily.glyph,
                     color: daily.color,
                     onTap: () => context.push(daily.route),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
-                    height: 168,
+                    height: 172,
                     child: Row(
                       children: <Widget>[
                         Expanded(
@@ -102,7 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             label: l10n.tileColor,
                             subtitle: l10n.tileColorSubtitle(60),
                             color: AppColors.coral,
-                            icon: Icons.brush_rounded,
+                            glyph: ClayIconKind.brush,
                             onTap: () => context.push(Routes.gallery),
                           ),
                         ),
@@ -112,7 +120,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             label: l10n.tilePlay,
                             subtitle: l10n.tilePlaySubtitle(ageGames.length),
                             color: AppColors.purple,
-                            icon: Icons.extension_rounded,
+                            glyph: ClayIconKind.puzzle,
                             onTap: () => context.push(Routes.games),
                           ),
                         ),
@@ -126,7 +134,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       label: l10n.tileLearn,
                       subtitle: l10n.tileLearnSubtitle,
                       color: AppColors.green,
-                      icon: Icons.menu_book_rounded,
+                      glyph: ClayIconKind.book,
                       onTap: () => context.push(Routes.learn),
                     ),
                   ),
@@ -136,8 +144,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     child: _ActivityTile(
                       label: l10n.tileCreate,
                       subtitle: l10n.tileCreateSubtitle,
-                      color: AppColors.pink,
-                      icon: Icons.palette_rounded,
+                      color: AppColors.pinkDeep,
+                      glyph: ClayIconKind.palette,
                       onTap: () => context.push(Routes.creative),
                     ),
                   ),
@@ -159,7 +167,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
 /// Buddy avatar + greeting + settings cog.
 class _Header extends StatelessWidget {
-  const _Header({required this.name, required this.buddy, required this.bounce});
+  const _Header({
+    required this.name,
+    required this.buddy,
+    required this.bounce,
+  });
 
   final String name;
   final Buddy buddy;
@@ -168,34 +180,42 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final ThemeData theme = Theme.of(context);
     final String greeting =
         name.trim().isEmpty ? l10n.homeGreetingNoName : l10n.homeGreeting(name);
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         // Gentle vertical bob makes the buddy feel alive.
-        AnimatedBuilder(
-          animation: bounce,
-          builder: (BuildContext context, Widget? child) {
-            final double dy = math.sin(bounce.value * 2 * math.pi) * 5;
-            return Transform.translate(offset: Offset(0, dy), child: child);
-          },
-          child: Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: buddy.color.withValues(alpha: 0.15),
-              border: Border.all(color: buddy.color, width: 3),
-            ),
-            alignment: Alignment.center,
-            padding: const EdgeInsets.all(4),
-            child: ClipOval(
-              child: Image.asset(
-                buddy.assetPath,
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
+        RepaintBoundary(
+          child: AnimatedBuilder(
+            animation: bounce,
+            builder: (BuildContext context, Widget? child) {
+              final double dy = math.sin(bounce.value * 2 * math.pi) * 5;
+              return Transform.translate(offset: Offset(0, dy), child: child);
+            },
+            child: Container(
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: pastelOf(buddy.color, 0.35),
+                border: Border.all(color: Colors.white, width: 2.5),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: buddy.color.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              padding: const EdgeInsets.all(4),
+              child: ClipOval(
+                child: Image.asset(
+                  buddy.assetPath,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
+                ),
               ),
             ),
           ),
@@ -207,14 +227,22 @@ class _Header extends StatelessWidget {
             children: <Widget>[
               Text(
                 greeting,
-                style: theme.textTheme.headlineMedium,
+                style: GoogleFonts.poppins(
+                  fontSize: 22,
+                  height: 1.15,
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w700,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
                 l10n.homeQuestion,
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(color: AppColors.dark.withValues(alpha: 0.6)),
+                style: GoogleFonts.lexendDeca(
+                  fontSize: 14,
+                  color: AppColors.slate,
+                  height: 1.3,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -222,9 +250,9 @@ class _Header extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        IconButton.filledTonal(
-          onPressed: () => _parentGate(context, Routes.settings),
-          icon: const Icon(Icons.settings_rounded),
+        ClayIconButton(
+          icon: Icons.settings_rounded,
+          onTap: () => _parentGate(context, Routes.settings),
         ),
       ],
     );
@@ -245,34 +273,23 @@ class _StreakCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final ThemeData theme = Theme.of(context);
     final MaterialLocalizations material = MaterialLocalizations.of(context);
     final int firstDay = material.firstDayOfWeekIndex;
     // 0-based position of today within the displayed week.
     final int todayPos = (DateTime.now().weekday % 7 - firstDay + 7) % 7;
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppColors.orange.withValues(alpha: 0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+    return ClayTile(
+      color: AppColors.orange,
+      fill: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
             children: <Widget>[
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.orange.withValues(alpha: 0.15),
-                child: const Text('🔥', style: TextStyle(fontSize: 26)),
+              const ClayIcon(
+                kind: ClayIconKind.flame,
+                tint: AppColors.orange,
+                size: 48,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -281,12 +298,17 @@ class _StreakCard extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       l10n.homeStreakTitle(streakDays),
-                      style: theme.textTheme.titleLarge,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     Text(
                       l10n.homeStreakSubtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.dark.withValues(alpha: 0.6),
+                      style: GoogleFonts.lexendDeca(
+                        fontSize: 13,
+                        color: AppColors.slate,
                       ),
                     ),
                   ],
@@ -305,8 +327,9 @@ class _StreakCard extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     material.narrowWeekdays[weekday],
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: AppColors.dark.withValues(alpha: 0.5),
+                    style: GoogleFonts.lexendDeca(
+                      fontSize: 11,
+                      color: AppColors.slate,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -315,9 +338,11 @@ class _StreakCard extends StatelessWidget {
                     height: 30,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: done ? AppColors.orange : AppColors.grey,
+                      color: done
+                          ? AppColors.orange
+                          : pastelOf(AppColors.slate, 0.14),
                       border: isToday
-                          ? Border.all(color: AppColors.dark, width: 2)
+                          ? Border.all(color: AppColors.ink, width: 2)
                           : null,
                     ),
                     child: done
@@ -338,182 +363,174 @@ class _StreakCard extends StatelessWidget {
   }
 }
 
-/// Big gradient hero card featuring a rotating daily activity.
+/// Clay hero card featuring a rotating daily activity with a "Start" pill.
 class _DailyAdventureCard extends StatelessWidget {
   const _DailyAdventureCard({
     required this.title,
-    required this.icon,
+    required this.glyph,
     required this.color,
     required this.onTap,
   });
 
   final String title;
-  final IconData icon;
+  final ClayIconKind glyph;
   final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final ThemeData theme = Theme.of(context);
-    return Material(
-      borderRadius: BorderRadius.circular(32),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(32),
-        onTap: onTap,
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(32),
-            gradient: LinearGradient(
-              colors: <Color>[color, color.withValues(alpha: 0.7)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+    final Color edge =
+        Color.alphaBlend(AppColors.ink.withValues(alpha: 0.3), color);
+    return ClayTile(
+      color: color,
+      onTap: onTap,
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  l10n.homeDailyTitle,
+                  style: GoogleFonts.lexendDeca(
+                    fontSize: 13,
+                    color: AppColors.slate,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 21,
+                    height: 1.2,
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 14),
+                // Mini clay CTA: solid fill + hard darker bottom edge.
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(color: edge, offset: const Offset(0, 4)),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 9,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          l10n.homeStart,
+                          style: GoogleFonts.nunito(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.play_arrow_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      l10n.homeDailyTitle,
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(color: Colors.white70),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      title,
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(color: Colors.white),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 9,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Text(
-                            l10n.homeStart,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: color,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.play_arrow_rounded,
-                            color: color,
-                            size: 22,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.white24,
-                child: Icon(icon, size: 44, color: Colors.white),
-              ),
-            ],
-          ),
-        ),
+          const SizedBox(width: 12),
+          ClayIcon(kind: glyph, tint: color, size: 80),
+        ],
       ),
     );
   }
 }
 
-/// A compact square activity tile (Color / Play).
+/// A compact clay activity tile (Color / Play / Learn / Create).
 class _ActivityTile extends StatelessWidget {
   const _ActivityTile({
     required this.label,
     required this.subtitle,
     required this.color,
-    required this.icon,
+    required this.glyph,
     required this.onTap,
   });
 
   final String label;
   final String subtitle;
   final Color color;
-  final IconData icon;
+  final ClayIconKind glyph;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Material(
+    return ClayTile(
       color: color,
-      borderRadius: BorderRadius.circular(28),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(28),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              // Short, wide slots (e.g. the full-width Learn tile) lay the icon
-              // out beside the text; tall square tiles stack it on top.
-              final bool horizontal = constraints.maxHeight < 120;
-              final Widget avatar = CircleAvatar(
-                radius: 28,
-                backgroundColor: Colors.white,
-                child: Icon(icon, size: 30, color: color),
-              );
-              final Widget labels = Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    label,
-                    style: theme.textTheme.headlineSmall
-                        ?.copyWith(color: Colors.white),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(color: Colors.white70),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              );
-              if (horizontal) {
-                return Row(
-                  children: <Widget>[
-                    avatar,
-                    const SizedBox(width: 16),
-                    Expanded(child: labels),
-                  ],
-                );
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  avatar,
-                  const Spacer(),
-                  labels,
-                ],
-              );
-            },
-          ),
-        ),
+      onTap: onTap,
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          // Short, wide slots (e.g. the full-width Learn tile) lay the icon
+          // out beside the text; tall square tiles stack it on top.
+          final bool horizontal = constraints.maxHeight < 120;
+          final Widget avatar = ClayIcon(kind: glyph, tint: color);
+          final Widget labels = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  height: 1.2,
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w700,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                subtitle,
+                style: GoogleFonts.lexendDeca(
+                  fontSize: 12.5,
+                  color: AppColors.slate,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          );
+          if (horizontal) {
+            return Row(
+              children: <Widget>[
+                avatar,
+                const SizedBox(width: 16),
+                Expanded(child: labels),
+              ],
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              avatar,
+              const Spacer(),
+              labels,
+            ],
+          );
+        },
       ),
     );
   }
@@ -534,137 +551,55 @@ class _StickerProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final ThemeData theme = Theme.of(context);
     final double fraction = total == 0 ? 0 : (earned / total).clamp(0.0, 1.0);
-    return Material(
+    return ClayTile(
       color: AppColors.yellow,
-      borderRadius: BorderRadius.circular(28),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(28),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(
-            children: <Widget>[
-              const Text('⭐', style: TextStyle(fontSize: 30)),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      l10n.stickerRoom,
-                      style: theme.textTheme.titleLarge
-                          ?.copyWith(color: AppColors.dark),
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: LinearProgressIndicator(
-                        value: fraction,
-                        minHeight: 10,
-                        backgroundColor: Colors.white,
-                        color: AppColors.coral,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.stickersCollected(earned, total),
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: AppColors.dark),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.dark.withValues(alpha: 0.6),
-              ),
-            ],
+      onTap: onTap,
+      child: Row(
+        children: <Widget>[
+          const ClayIcon(
+            kind: ClayIconKind.star,
+            tint: AppColors.yellow,
+            size: 48,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Soft, slowly drifting blobs behind the dashboard. Decorative only.
-class _FloatingShapes extends StatelessWidget {
-  const _FloatingShapes({required this.animation});
-
-  final Animation<double> animation;
-
-  static const List<_Blob> _blobs = <_Blob>[
-    _Blob(color: AppColors.teal, size: 150, left: -40, top: 80, phase: 0),
-    _Blob(color: AppColors.pink, size: 110, right: -30, top: 220, phase: 0.4),
-    _Blob(
-      color: AppColors.purple,
-      size: 130,
-      left: -30,
-      bottom: 60,
-      phase: 0.7,
-    ),
-    _Blob(
-      color: AppColors.yellow,
-      size: 90,
-      right: -10,
-      bottom: 160,
-      phase: 0.2,
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: RepaintBoundary(
-        child: AnimatedBuilder(
-          animation: animation,
-          builder: (BuildContext context, _) {
-            return Stack(
-              children: _blobs.map((_Blob b) {
-                final double t = (animation.value + b.phase) * 2 * math.pi;
-                return Positioned(
-                  left: b.left,
-                  right: b.right,
-                  top: b.top == null ? null : b.top! + math.sin(t) * 12,
-                  bottom:
-                      b.bottom == null ? null : b.bottom! + math.cos(t) * 12,
-                  child: Container(
-                    width: b.size,
-                    height: b.size,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: b.color.withValues(alpha: 0.12),
-                    ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  l10n.stickerRoom,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w700,
                   ),
-                );
-              }).toList(),
-            );
-          },
-        ),
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: fraction,
+                    minHeight: 10,
+                    backgroundColor: Colors.white,
+                    color: AppColors.coral,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  l10n.stickersCollected(earned, total),
+                  style: GoogleFonts.lexendDeca(
+                    fontSize: 13,
+                    color: AppColors.slate,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.slate),
+        ],
       ),
     );
   }
-}
-
-@immutable
-class _Blob {
-  const _Blob({
-    required this.color,
-    required this.size,
-    required this.phase,
-    this.left,
-    this.right,
-    this.top,
-    this.bottom,
-  });
-
-  final Color color;
-  final double size;
-  final double phase;
-  final double? left;
-  final double? right;
-  final double? top;
-  final double? bottom;
 }

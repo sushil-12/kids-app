@@ -231,7 +231,8 @@ class _StatsCard extends StatelessWidget {
       child: stats.when(
         loading: () => const Padding(
           padding: EdgeInsets.symmetric(vertical: 12),
-          child: Center(child: CircularProgressIndicator(color: AppColors.teal)),
+          child:
+              Center(child: CircularProgressIndicator(color: AppColors.teal)),
         ),
         error: (Object e, _) => Text(
           l10n.adminStatsError,
@@ -241,11 +242,31 @@ class _StatsCard extends StatelessWidget {
           spacing: 12,
           runSpacing: 12,
           children: <Widget>[
-            _StatChip(label: l10n.adminStatStories, value: s.stories, color: AppColors.coral),
-            _StatChip(label: l10n.adminStatPoems, value: s.poems, color: AppColors.purple),
-            _StatChip(label: l10n.adminStatAbc, value: s.abcLessons, color: AppColors.teal),
-            _StatChip(label: l10n.adminStatAiToday, value: s.openAiCallsToday, color: AppColors.orange),
-            _StatChip(label: l10n.adminStatCrawledWeek, value: s.crawledThisWeek, color: AppColors.green),
+            _StatChip(
+              label: l10n.adminStatStories,
+              value: s.stories,
+              color: AppColors.coral,
+            ),
+            _StatChip(
+              label: l10n.adminStatPoems,
+              value: s.poems,
+              color: AppColors.purple,
+            ),
+            _StatChip(
+              label: l10n.adminStatAbc,
+              value: s.abcLessons,
+              color: AppColors.teal,
+            ),
+            _StatChip(
+              label: l10n.adminStatAiToday,
+              value: s.openAiCallsToday,
+              color: AppColors.orange,
+            ),
+            _StatChip(
+              label: l10n.adminStatCrawledWeek,
+              value: s.crawledThisWeek,
+              color: AppColors.green,
+            ),
           ],
         ),
       ),
@@ -254,7 +275,11 @@ class _StatsCard extends StatelessWidget {
 }
 
 class _StatChip extends StatelessWidget {
-  const _StatChip({required this.label, required this.value, required this.color});
+  const _StatChip({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   final String label;
   final int value;
@@ -478,7 +503,8 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+        style:
+            TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
       ),
     );
   }
@@ -522,7 +548,8 @@ class _LogCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           e.message,
-                          style: theme.textTheme.bodyMedium?.copyWith(color: color),
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(color: color),
                         ),
                       ),
                     ],

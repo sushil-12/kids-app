@@ -52,7 +52,9 @@ class BackendService {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
       if (kDebugMode) {
-        debugPrint('[backend] ${response.statusCode} GET $path → ${response.body}');
+        debugPrint(
+          '[backend] ${response.statusCode} GET $path → ${response.body}',
+        );
       }
       throw BackendException(response.statusCode, response.body);
     } on BackendException {
@@ -66,8 +68,7 @@ class BackendService {
   }
 
   Future<DailyStory> fetchDailyStory(AgeBand band) async {
-    final String bandName =
-        band == AgeBand.junior ? 'junior' : 'senior';
+    final String bandName = band == AgeBand.junior ? 'junior' : 'senior';
     final Map<String, dynamic> j =
         await _get('/v1/stories/daily?ageBand=$bandName');
     return DailyStory(

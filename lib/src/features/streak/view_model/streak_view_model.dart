@@ -48,7 +48,8 @@ class StreakViewModel extends Notifier<StreakState> {
 
     if (last == today) return; // already counted today
 
-    final int streak = (last != null && last == today - 1) ? state.streak + 1 : 1;
+    final int streak =
+        (last != null && last == today - 1) ? state.streak + 1 : 1;
     _store.save(lastPlayedEpochDay: today, streak: streak);
     state = StreakState(streak: streak, lastPlayedEpochDay: today);
   }

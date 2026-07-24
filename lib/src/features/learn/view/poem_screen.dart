@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/learn_content.dart';
 import '../view_model/learn_providers.dart';
@@ -40,82 +41,99 @@ class _PoemScreenState extends ConsumerState<PoemScreen> {
     final AsyncValue<KidsPoem> async = ref.watch(poemProvider(_topic));
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
-      appBar: AppBar(
-        backgroundColor: AppColors.cream,
-        elevation: 0,
-        title: Text(l10n.poemsTitle, style: theme.textTheme.headlineMedium),
-        centerTitle: false,
-      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           ref.read(poemRefreshProvider.notifier).update((int n) => n + 1);
         },
         backgroundColor: AppColors.purple,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Colors.white, width: 2.5),
+        ),
         icon: const Text('🎵', style: TextStyle(fontSize: 18)),
         label: Text(l10n.newPoemButton),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
+        fit: StackFit.expand,
         children: <Widget>[
-          // Topic chips
-          SizedBox(
-            height: 52,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-              itemCount: _kTopics.length,
-              itemBuilder: (BuildContext context, int i) {
-                final bool active = _kTopics[i] == _topic;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    selected: active,
-                    label: Text(
-                      '${_kTopicEmojis[i]} ${_kTopics[i]}',
-                    ),
-                    onSelected: (_) =>
-                        setState(() => _topic = _kTopics[i]),
-                    selectedColor: AppColors.purple.withValues(alpha: 0.2),
-                    checkmarkColor: AppColors.purple,
-                    labelStyle: theme.textTheme.titleSmall?.copyWith(
-                      color: active ? AppColors.purple : AppColors.dark,
-                      fontWeight:
-                          active ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    backgroundColor: Colors.white,
-                    side: BorderSide(
-                      color: active ? AppColors.purple : AppColors.grey,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+          const ClayBackground(tint: AppColors.purple),
+          SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                  child: ClayHeader(
+                    title: l10n.poemsTitle,
+                    tint: AppColors.purple,
                   ),
-                );
-              },
-            ),
-          ),
-          Expanded(
-            child: async.when(
-              loading: () => Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    const CircularProgressIndicator(color: AppColors.purple),
-                    const SizedBox(height: 16),
-                    Text(
-                      l10n.contentLoading,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: AppColors.dark.withValues(alpha: 0.6),
+                ),
+                // Topic chips
+                SizedBox(
+                  height: 52,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                    itemCount: _kTopics.length,
+                    itemBuilder: (BuildContext context, int i) {
+                      final bool active = _kTopics[i] == _topic;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          selected: active,
+                          label: Text(
+                            '${_kTopicEmojis[i]} ${_kTopics[i]}',
+                          ),
+                          onSelected: (_) =>
+                              setState(() => _topic = _kTopics[i]),
+                          selectedColor:
+                              AppColors.purple.withValues(alpha: 0.2),
+                          checkmarkColor: AppColors.purple,
+                          labelStyle: theme.textTheme.titleSmall?.copyWith(
+                            color: active ? AppColors.purple : AppColors.dark,
+                            fontWeight:
+                                active ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          backgroundColor: Colors.white,
+                          side: BorderSide(
+                            color: active ? AppColors.purple : AppColors.grey,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: async.when(
+                    loading: () => Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          const CircularProgressIndicator(
+                            color: AppColors.purple,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            l10n.contentLoading,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: AppColors.dark.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                    error: (_, __) => const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.purple,
+                      ),
+                    ),
+                    data: (KidsPoem poem) => _PoemCard(poem: poem),
+                  ),
                 ),
-              ),
-              error: (_, __) => Center(
-                child: const CircularProgressIndicator(color: AppColors.purple),
-              ),
-              data: (KidsPoem poem) => _PoemCard(poem: poem),
+              ],
             ),
           ),
         ],

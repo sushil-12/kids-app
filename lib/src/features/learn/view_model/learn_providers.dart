@@ -7,8 +7,12 @@ import '../../../core/router/locale_controller.dart';
 import '../../../core/services/backend_service.dart';
 import '../../../features/profile/data/child_profile.dart';
 import '../../../features/profile/view_model/profile_view_model.dart';
-import '../data/cinematic_fallbacks.dart';
+// TEMP: fallback unused while the cinematic story is served from sample JSON.
+// import '../data/cinematic_fallbacks.dart';
 import '../data/cinematic_story.dart';
+import '../data/cinematic_story_v2.dart';
+import '../data/sample_cinematic_story.dart';
+import '../data/sample_cinematic_story_v2.dart';
 import '../data/content_cache.dart';
 import '../data/learn_content.dart';
 
@@ -73,39 +77,63 @@ final dailyStoryProvider = FutureProvider.autoDispose<DailyStory>((
 final cinematicStoryProvider = FutureProvider.autoDispose<CinematicStory>((
   Ref ref,
 ) async {
-  final int refresh = ref.watch(storyRefreshProvider);
-  final BackendService backend = ref.watch(backendServiceProvider);
-  final ContentCache cache = ref.watch(contentCacheProvider);
-  final ChildProfile? profile = ref.watch(profileProvider);
-  final AgeBand band = profile?.ageBand ?? AgeBand.junior;
-  final Locale locale = ref.watch(localeControllerProvider) ??
-      PlatformDispatcher.instance.locale;
+  final Locale locale =
+      ref.watch(localeControllerProvider) ?? PlatformDispatcher.instance.locale;
   final String lang = locale.languageCode == 'hi' ? 'hi' : 'en';
 
-  final String key = 'cine_${band.name}_${lang}_${_todayKey()}_r$refresh';
+  // TEMP: serve the player from the bundled sample wire JSON (the exact shape
+  // the backend returns — see data/sample_cinematic_story.dart) while the
+  // backend copy of this story is being set up. To go backend-first again,
+  // delete the next line + the sample file and un-comment the block below.
+  return sampleCinematicStoryFor(lang);
 
-  final String? cached = await cache.get(key);
-  if (cached != null) {
-    return CinematicStory.fromJson(jsonDecode(cached) as Map<String, dynamic>);
-  }
+  // final int refresh = ref.watch(storyRefreshProvider);
+  // final BackendService backend = ref.watch(backendServiceProvider);
+  // final ContentCache cache = ref.watch(contentCacheProvider);
+  // final ChildProfile? profile = ref.watch(profileProvider);
+  // final AgeBand band = profile?.ageBand ?? AgeBand.junior;
+  //
+  // final String key = 'cine_${band.name}_${lang}_${_todayKey()}_r$refresh';
+  //
+  // final String? cached = await cache.get(key);
+  // if (cached != null) {
+  //   return CinematicStory.fromJson(
+  //     jsonDecode(cached) as Map<String, dynamic>,
+  //   );
+  // }
+  //
+  // if (!backend.isConfigured) return CinematicFallbacks.storyFor(lang);
+  //
+  // try {
+  //   final CinematicStory story = await backend.fetchCinematicStory(band, lang);
+  //   await cache.set(key, jsonEncode(story.toJson()));
+  //   return story;
+  // } catch (_) {
+  //   return CinematicFallbacks.storyFor(lang);
+  // }
+});
 
-  if (!backend.isConfigured) return CinematicFallbacks.storyFor(lang);
+// ── Cinematic Story v2 (director track) ──────────────────────────────────────
+// The timeline-based player (SceneClock + CueScheduler + CameraRig). Served
+// from the bundled v2 sample wire JSON for now — the exact shape the backend
+// will return (see data/sample_cinematic_story_v2.dart +
+// backend_samples/cinematic_story_v2_hare_and_tortoise.json). Swaps to a real
+// backend fetch the same way the v1 provider does.
 
-  try {
-    final CinematicStory story = await backend.fetchCinematicStory(band, lang);
-    await cache.set(key, jsonEncode(story.toJson()));
-    return story;
-  } catch (_) {
-    return CinematicFallbacks.storyFor(lang);
-  }
+final cinematicStoryV2Provider = FutureProvider.autoDispose<CinematicStoryV2>((
+  Ref ref,
+) async {
+  final Locale locale =
+      ref.watch(localeControllerProvider) ?? PlatformDispatcher.instance.locale;
+  final String lang = locale.languageCode == 'hi' ? 'hi' : 'en';
+  return sampleCinematicStoryV2For(lang);
 });
 
 // ── ABC Lessons ─────────────────────────────────────────────────────────────
 // Backend-served so curated/crawled lessons can evolve, cached per letter,
 // with the bundled A–Z dataset as the offline fallback.
 
-final abcLessonProvider =
-    FutureProvider.autoDispose.family<AbcLesson, String>((
+final abcLessonProvider = FutureProvider.autoDispose.family<AbcLesson, String>((
   AutoDisposeFutureProviderRef<AbcLesson> ref,
   String letter,
 ) async {

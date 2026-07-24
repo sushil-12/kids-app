@@ -22,7 +22,8 @@ class ColoringPage extends Equatable {
   final String stickerRewardId;
 
   @override
-  List<Object?> get props => <Object?>[id, title, category, assetPath, isPremium];
+  List<Object?> get props =>
+      <Object?>[id, title, category, assetPath, isPremium];
 }
 
 /// A single freehand stroke the child paints onto the canvas.

@@ -50,6 +50,7 @@ abstract final class ScenePalette {
   static const Color starGold = Color(0xFFFFE082);
   static const Color moonPale = Color(0xFFF6F1D9);
   static const Color outline = Color(0x33332E40);
+  static const Color vignette = Color(0x1F332E40);
 }
 
 /// Paints one scene's background + props. Repaints only when the scene
@@ -62,9 +63,14 @@ class ScenePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     _paintBackground(canvas, size);
+    // Contact shadows first so no shadow ever lies over a neighbour prop.
+    for (final SceneProp prop in scene.props) {
+      _paintPropShadow(canvas, size, prop);
+    }
     for (final SceneProp prop in scene.props) {
       _paintProp(canvas, size, prop);
     }
+    _paintVignette(canvas, size);
   }
 
   @override
@@ -118,9 +124,85 @@ class ScenePainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: <Color>[top, bottom],
+          // Three stops read as atmosphere; two read as a flat fill.
+          stops: const <double>[0, 0.55, 1],
+          colors: <Color>[top, Color.lerp(top, bottom, 0.45)!, bottom],
         ).createShader(rect),
     );
+
+    // Warm ambient key light for the sunny moods — a big soft radial glow
+    // where the sun lives lifts the whole sky out of "flat gradient".
+    if (scene.background == SceneBackground.hotDay ||
+        scene.background == SceneBackground.village ||
+        scene.background == SceneBackground.pond ||
+        scene.background == SceneBackground.sky) {
+      canvas.drawRect(
+        rect,
+        Paint()
+          ..shader = RadialGradient(
+            center: const Alignment(0.55, -0.65),
+            radius: 0.95,
+            colors: <Color>[
+              ScenePalette.sunYellow.withValues(alpha: 0.26),
+              ScenePalette.sunYellow.withValues(alpha: 0),
+            ],
+          ).createShader(rect),
+      );
+    }
+
+    // Pale haze hugging the horizon — sells distance on every mood.
+    canvas.drawRect(
+      Rect.fromLTWH(0, size.height * 0.5, size.width, size.height * 0.28),
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const <double>[0, 0.65, 1],
+          colors: <Color>[
+            ScenePalette.cloudWhite.withValues(alpha: 0),
+            ScenePalette.cloudWhite.withValues(
+              alpha: scene.background == SceneBackground.night ? 0.08 : 0.22,
+            ),
+            ScenePalette.cloudWhite.withValues(alpha: 0),
+          ],
+        ).createShader(
+          Rect.fromLTWH(0, size.height * 0.5, size.width, size.height * 0.28),
+        ),
+    );
+
+    // Two parallax silhouette bands between sky and ground: far hills take
+    // the sky's tint (aerial perspective), near hills sit closer to the
+    // ground color. The ground then overlaps their feet.
+    if (scene.background != SceneBackground.sky) {
+      final double horizon = size.height * 0.72;
+      final Color farHill = Color.lerp(ground, bottom, 0.55)!;
+      final Color nearHill = Color.lerp(ground, bottom, 0.28)!;
+      Path hills(double lift, double amp) => Path()
+        ..moveTo(0, horizon - lift)
+        ..quadraticBezierTo(
+          size.width * 0.22,
+          horizon - lift - amp,
+          size.width * 0.45,
+          horizon - lift * 0.8,
+        )
+        ..quadraticBezierTo(
+          size.width * 0.7,
+          horizon - lift + amp * 0.4,
+          size.width,
+          horizon - lift - amp * 0.6,
+        )
+        ..lineTo(size.width, size.height)
+        ..lineTo(0, size.height)
+        ..close();
+      canvas.drawPath(
+        hills(size.height * 0.1, size.height * 0.05),
+        Paint()..color = farHill,
+      );
+      canvas.drawPath(
+        hills(size.height * 0.045, size.height * 0.035),
+        Paint()..color = nearHill,
+      );
+    }
 
     // Rolling ground with a soft horizon bump (skipped for pure-sky scenes).
     if (scene.background != SceneBackground.sky) {
@@ -159,7 +241,17 @@ class ScenePainter extends CustomPainter {
           Paint()..color = ScenePalette.waterDeep.withValues(alpha: 0.35),
         );
       case SceneBackground.forest:
-        // Distant canopy silhouettes along the horizon.
+        // Two rows of canopy silhouettes — the fainter, smaller back row
+        // gives the treeline depth.
+        final Paint back = Paint()
+          ..color = ScenePalette.leafDark.withValues(alpha: 0.18);
+        for (int i = 0; i < 6; i++) {
+          canvas.drawCircle(
+            Offset(size.width * (0.02 + i * 0.19), size.height * 0.665),
+            size.shortestSide * (0.06 + (i.isOdd ? 0.015 : 0)),
+            back,
+          );
+        }
         final Paint far = Paint()
           ..color = ScenePalette.leafDark.withValues(alpha: 0.35);
         for (int i = 0; i < 5; i++) {
@@ -189,7 +281,48 @@ class ScenePainter extends CustomPainter {
     }
   }
 
+  /// Soft radial darkening toward the corners; frames the stage like an
+  /// illustration instead of a flat fill running off-screen.
+  void _paintVignette(Canvas canvas, Size size) {
+    final Rect rect = Offset.zero & size;
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(0, -0.1),
+          radius: 1.3,
+          stops: <double>[0.72, 1],
+          colors: <Color>[Color(0x00000000), ScenePalette.vignette],
+        ).createShader(rect),
+    );
+  }
+
   // ---- Props ----------------------------------------------------------------
+
+  /// Elliptical contact shadow under grounded props. Sky-borne props
+  /// (sun/cloud/star/moon) and flat ones (pond/mountain) cast none.
+  void _paintPropShadow(Canvas canvas, Size size, SceneProp prop) {
+    final (double dy, double w) = switch (prop.kind) {
+      PropKind.tree => (1.7, 1.9),
+      PropKind.pot => (0.78, 1.6),
+      PropKind.house => (0.98, 1.9),
+      PropKind.rock => (0.5, 1.7),
+      PropKind.bush => (0.62, 1.6),
+      PropKind.flower => (1.22, 1.0),
+      _ => (0, 0),
+    };
+    if (w == 0) return;
+    final Offset c = Offset(prop.x * size.width, prop.y * size.height);
+    final double r = size.shortestSide * 0.09 * prop.scale;
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: c + Offset(0, r * dy),
+        width: r * w,
+        height: r * 0.32,
+      ),
+      Paint()..color = ScenePalette.outline,
+    );
+  }
 
   void _paintProp(Canvas canvas, Size size, SceneProp prop) {
     final Offset c = Offset(prop.x * size.width, prop.y * size.height);
@@ -227,6 +360,12 @@ class ScenePainter extends CustomPainter {
   }
 
   void _paintSun(Canvas canvas, Offset c, double r) {
+    // Outer halo behind the rays.
+    canvas.drawCircle(
+      c,
+      r * 2.1,
+      Paint()..color = ScenePalette.sunYellow.withValues(alpha: 0.18),
+    );
     final Paint ray = Paint()
       ..color = ScenePalette.sunOrange.withValues(alpha: 0.8)
       ..strokeWidth = r * 0.16
@@ -254,7 +393,11 @@ class ScenePainter extends CustomPainter {
     canvas.drawCircle(c + Offset(-r * 0.05, -r * 0.25), r * 0.75, paint);
     canvas.drawCircle(c + Offset(r * 0.65, r * 0.1), r * 0.55, paint);
     canvas.drawOval(
-      Rect.fromCenter(center: c + Offset(0, r * 0.25), width: r * 2.4, height: r),
+      Rect.fromCenter(
+        center: c + Offset(0, r * 0.25),
+        width: r * 2.4,
+        height: r,
+      ),
       paint,
     );
   }
@@ -278,16 +421,41 @@ class ScenePainter extends CustomPainter {
       r * 0.9,
       Paint()..color = ScenePalette.leafDark.withValues(alpha: 0.25),
     );
+    // Top-left key-light highlight on the canopy.
+    canvas.drawCircle(
+      c + Offset(-r * 0.35, -r * 0.65),
+      r * 0.38,
+      Paint()..color = ScenePalette.cloudWhite.withValues(alpha: 0.2),
+    );
   }
 
   void _paintPot(Canvas canvas, Offset c, double r) {
     final Path body = Path()
       ..moveTo(c.dx - r * 0.55, c.dy - r * 0.7)
-      ..quadraticBezierTo(c.dx - r * 1.05, c.dy + r * 0.1, c.dx - r * 0.5, c.dy + r * 0.75)
+      ..quadraticBezierTo(
+        c.dx - r * 1.05,
+        c.dy + r * 0.1,
+        c.dx - r * 0.5,
+        c.dy + r * 0.75,
+      )
       ..lineTo(c.dx + r * 0.5, c.dy + r * 0.75)
-      ..quadraticBezierTo(c.dx + r * 1.05, c.dy + r * 0.1, c.dx + r * 0.55, c.dy - r * 0.7)
+      ..quadraticBezierTo(
+        c.dx + r * 1.05,
+        c.dy + r * 0.1,
+        c.dx + r * 0.55,
+        c.dy - r * 0.7,
+      )
       ..close();
     canvas.drawPath(body, Paint()..color = ScenePalette.potBrown);
+    // Glaze highlight down the left flank.
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: c + Offset(-r * 0.42, r * 0.05),
+        width: r * 0.3,
+        height: r * 1.0,
+      ),
+      Paint()..color = ScenePalette.cloudWhite.withValues(alpha: 0.22),
+    );
     // Rim.
     canvas.drawOval(
       Rect.fromCenter(
@@ -310,7 +478,11 @@ class ScenePainter extends CustomPainter {
 
   void _paintHouse(Canvas canvas, Offset c, double r) {
     canvas.drawRect(
-      Rect.fromCenter(center: c + Offset(0, r * 0.3), width: r * 1.7, height: r * 1.3),
+      Rect.fromCenter(
+        center: c + Offset(0, r * 0.3),
+        width: r * 1.7,
+        height: r * 1.3,
+      ),
       Paint()..color = ScenePalette.houseWall,
     );
     final Path roof = Path()
@@ -346,6 +518,15 @@ class ScenePainter extends CustomPainter {
       ),
       paint,
     );
+    // Top light.
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: c + Offset(-r * 0.15, -r * 0.18),
+        width: r * 0.8,
+        height: r * 0.35,
+      ),
+      Paint()..color = ScenePalette.cloudWhite.withValues(alpha: 0.16),
+    );
   }
 
   void _paintBush(Canvas canvas, Offset c, double r) {
@@ -367,7 +548,12 @@ class ScenePainter extends CustomPainter {
       ..lineTo(c.dx, c.dy - r * 1.2)
       ..lineTo(c.dx + r * 0.42, c.dy - r * 0.45)
       ..quadraticBezierTo(c.dx + r * 0.2, c.dy - r * 0.3, c.dx, c.dy - r * 0.45)
-      ..quadraticBezierTo(c.dx - r * 0.2, c.dy - r * 0.3, c.dx - r * 0.42, c.dy - r * 0.45)
+      ..quadraticBezierTo(
+        c.dx - r * 0.2,
+        c.dy - r * 0.3,
+        c.dx - r * 0.42,
+        c.dy - r * 0.45,
+      )
       ..close();
     canvas.drawPath(snow, Paint()..color = ScenePalette.snowWhite);
   }
@@ -399,7 +585,8 @@ class ScenePainter extends CustomPainter {
       final double outer = -math.pi / 2 + i * 2 * math.pi / 5;
       final double inner = outer + math.pi / 5;
       final Offset po = c + Offset(math.cos(outer), math.sin(outer)) * r;
-      final Offset pi = c + Offset(math.cos(inner), math.sin(inner)) * (r * 0.45);
+      final Offset pi =
+          c + Offset(math.cos(inner), math.sin(inner)) * (r * 0.45);
       if (i == 0) {
         path.moveTo(po.dx, po.dy);
       } else {
@@ -416,7 +603,12 @@ class ScenePainter extends CustomPainter {
       PathOperation.difference,
       Path()..addOval(Rect.fromCircle(center: c, radius: r)),
       Path()
-        ..addOval(Rect.fromCircle(center: c + Offset(r * 0.45, -r * 0.2), radius: r * 0.85)),
+        ..addOval(
+          Rect.fromCircle(
+            center: c + Offset(r * 0.45, -r * 0.2),
+            radius: r * 0.85,
+          ),
+        ),
     );
     canvas.drawPath(crescent, Paint()..color = ScenePalette.moonPale);
   }

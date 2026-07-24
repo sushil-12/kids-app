@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../games/shared/game_celebration.dart';
 import '../../rewards/view_model/rewards_view_model.dart';
@@ -73,29 +74,34 @@ class _ColorByNumberScreenState extends ConsumerState<ColorByNumberScreen>
     );
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            _TopBar(title: state.template.title),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-              child: Text(
-                l10n.colorByNumberHint,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.dark.withValues(alpha: 0.6),
-                    ),
-              ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          // Kept subtle so the palette colors stay true on the canvas.
+          const ClayBackground(tint: AppColors.teal),
+          SafeArea(
+            child: Column(
+              children: <Widget>[
+                _TopBar(title: state.template.title),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                  child: Text(
+                    l10n.colorByNumberHint,
+                    textAlign: TextAlign.center,
+                    style: clayBody(fontSize: 13.5),
+                  ),
+                ),
+                Expanded(child: _Canvas(state: state, vm: vm, wobble: _wobble)),
+                const SizedBox(height: 8),
+                _NumberPalette(
+                  selected: state.selectedNumber,
+                  onSelect: vm.selectNumber,
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
-            Expanded(child: _Canvas(state: state, vm: vm, wobble: _wobble)),
-            const SizedBox(height: 8),
-            _NumberPalette(
-              selected: state.selectedNumber,
-              onSelect: vm.selectNumber,
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -112,15 +118,16 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       child: Row(
         children: <Widget>[
-          IconButton.filledTonal(
-            onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back_rounded),
+          ClayIconButton(
+            icon: Icons.arrow_back_rounded,
+            tint: AppColors.teal,
+            onTap: () => context.pop(),
           ),
           Expanded(
             child: Text(
               title,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: clayTitle(fontSize: 20),
             ),
           ),
           const SizedBox(width: 48),
@@ -147,11 +154,12 @@ class _Canvas extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: Colors.white, width: 2.5),
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: AppColors.dark.withValues(alpha: 0.08),
+              color: AppColors.teal.withValues(alpha: 0.18),
               blurRadius: 18,
-              offset: const Offset(0, 8),
+              offset: const Offset(0, 10),
             ),
           ],
         ),

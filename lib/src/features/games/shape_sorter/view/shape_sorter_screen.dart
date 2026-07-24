@@ -96,14 +96,20 @@ class _Hole extends StatelessWidget {
       return ShapeView(kind: hole.kind, color: hole.color, size: 84);
     }
     return DragTarget<ShapeKind>(
-      onWillAcceptWithDetails: (DragTargetDetails<ShapeKind> d) => d.data == hole.kind,
+      onWillAcceptWithDetails: (DragTargetDetails<ShapeKind> d) =>
+          d.data == hole.kind,
       onAcceptWithDetails: (_) => onAccept(),
       builder: (BuildContext context, List<ShapeKind?> candidate, _) {
         final bool hovering = candidate.isNotEmpty;
         return AnimatedScale(
           scale: hovering ? 1.15 : 1,
           duration: const Duration(milliseconds: 150),
-          child: ShapeView(kind: hole.kind, color: hole.color, size: 84, outlined: true),
+          child: ShapeView(
+            kind: hole.kind,
+            color: hole.color,
+            size: 84,
+            outlined: true,
+          ),
         );
       },
     );

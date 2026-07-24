@@ -20,8 +20,8 @@ class ColoringPainter extends CustomPainter {
     required this.strokes,
     this.activeStroke,
     this.outlineWidth = 1.8,
-    Listenable? repaint,
-  }) : super(repaint: repaint);
+    super.repaint,
+  });
 
   final ColoringTemplate template;
   final Map<String, Color> fills;
@@ -87,9 +87,11 @@ class ColoringPainter extends CustomPainter {
       ..isAntiAlias = true;
 
     if (stroke.points.length == 1) {
-      canvas.drawPoints(ui.PointMode.points, stroke.points, paint);      return;
+      canvas.drawPoints(ui.PointMode.points, stroke.points, paint);
+      return;
     }
-    final Path path = Path()..moveTo(stroke.points.first.dx, stroke.points.first.dy);
+    final Path path = Path()
+      ..moveTo(stroke.points.first.dx, stroke.points.first.dy);
     for (int i = 1; i < stroke.points.length; i++) {
       path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
     }

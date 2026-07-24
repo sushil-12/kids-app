@@ -90,7 +90,8 @@ class _ColorTile extends ConsumerStatefulWidget {
   ConsumerState<_ColorTile> createState() => _ColorTileState();
 }
 
-class _ColorTileState extends ConsumerState<_ColorTile> with SingleTickerProviderStateMixin {
+class _ColorTileState extends ConsumerState<_ColorTile>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _wobble = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 350),
@@ -141,7 +142,11 @@ class _ColorTileState extends ConsumerState<_ColorTile> with SingleTickerProvide
             ),
             child: widget.found
                 ? const Center(
-                    child: Icon(Icons.check_rounded, color: Colors.white, size: 40),
+                    child: Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 40,
+                    ),
                   )
                 : const SizedBox.expand(),
           ),

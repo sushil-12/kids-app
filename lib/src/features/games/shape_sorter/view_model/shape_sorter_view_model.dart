@@ -82,7 +82,9 @@ class ShapeSorterViewModel extends Notifier<ShapeSorterState> {
     if (!ref.read(featureFlagsProvider).adaptiveDifficulty) {
       return DifficultyLevel.medium;
     }
-    return ref.read(adaptiveProvider.notifier).difficultyFor(GameId.shapeSorter);
+    return ref
+        .read(adaptiveProvider.notifier)
+        .difficultyFor(GameId.shapeSorter);
   }
 
   ShapeSorterState _newGame() {
@@ -91,8 +93,8 @@ class ShapeSorterViewModel extends Notifier<ShapeSorterState> {
       for (int i = 0; i < count; i++)
         SortableShape(kind: _kinds[i], color: _colors[i]),
     ];
-    final List<ShapeKind> tray =
-        List<ShapeKind>.of(_kinds.take(count))..shuffle(math.Random());
+    final List<ShapeKind> tray = List<ShapeKind>.of(_kinds.take(count))
+      ..shuffle(math.Random());
     return ShapeSorterState(holes: holes, tray: tray);
   }
 
@@ -123,4 +125,6 @@ class ShapeSorterViewModel extends Notifier<ShapeSorterState> {
 }
 
 final shapeSorterProvider =
-    NotifierProvider<ShapeSorterViewModel, ShapeSorterState>(ShapeSorterViewModel.new);
+    NotifierProvider<ShapeSorterViewModel, ShapeSorterState>(
+  ShapeSorterViewModel.new,
+);

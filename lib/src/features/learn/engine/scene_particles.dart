@@ -79,12 +79,23 @@ class SceneParticlesPainter extends CustomPainter {
       final double y = size.height * (0.18 + rng.nextDouble() * 0.4);
       final double phase = rng.nextDouble();
       // Each swirl travels the full width once per lap, offset by its phase.
-      final double x = ((t + phase) % 1.0) * (size.width * 1.4) - size.width * 0.2;
+      final double x =
+          ((t + phase) % 1.0) * (size.width * 1.4) - size.width * 0.2;
       final double w = size.width * 0.22;
       final Path path = Path()
         ..moveTo(x, y)
-        ..quadraticBezierTo(x + w * 0.35, y - size.height * 0.02, x + w * 0.7, y)
-        ..quadraticBezierTo(x + w * 0.9, y + size.height * 0.012, x + w, y - size.height * 0.008);
+        ..quadraticBezierTo(
+          x + w * 0.35,
+          y - size.height * 0.02,
+          x + w * 0.7,
+          y,
+        )
+        ..quadraticBezierTo(
+          x + w * 0.9,
+          y + size.height * 0.012,
+          x + w,
+          y - size.height * 0.008,
+        );
       canvas.drawPath(path, paint);
     }
   }
@@ -99,8 +110,10 @@ class SceneParticlesPainter extends CustomPainter {
     for (int i = 0; i < 3; i++) {
       final double phase = rng.nextDouble();
       final double y = size.height * (0.1 + rng.nextDouble() * 0.22);
-      final double x = ((t * 0.6 + phase) % 1.0) * (size.width * 1.3) - size.width * 0.15;
-      final double flap = math.sin((t * 6 + i) * 2 * math.pi) * size.height * 0.008;
+      final double x =
+          ((t * 0.6 + phase) % 1.0) * (size.width * 1.3) - size.width * 0.15;
+      final double flap =
+          math.sin((t * 6 + i) * 2 * math.pi) * size.height * 0.008;
       final double s = size.shortestSide * 0.02;
       final Path bird = Path()
         ..moveTo(x - s, y + flap)
@@ -118,7 +131,8 @@ class SceneParticlesPainter extends CustomPainter {
       final double phase = rng.nextDouble();
       final double x0 = rng.nextDouble() * size.width;
       final double fall = (t + phase) % 1.0;
-      final double x = x0 + math.sin(fall * 4 * math.pi + i) * size.width * 0.05;
+      final double x =
+          x0 + math.sin(fall * 4 * math.pi + i) * size.width * 0.05;
       final double y = fall * size.height;
       canvas.save();
       canvas.translate(x, y);
@@ -180,7 +194,8 @@ class SceneParticlesPainter extends CustomPainter {
       final double phase = rng.nextDouble();
       final double x0 = size.width * (0.3 + rng.nextDouble() * 0.4);
       final double rise = (t + phase) % 1.0;
-      final double x = x0 + math.sin(rise * 3 * math.pi + i) * size.width * 0.03;
+      final double x =
+          x0 + math.sin(rise * 3 * math.pi + i) * size.width * 0.03;
       final double y = size.height * (0.85 - rise * 0.5);
       canvas.drawCircle(
         Offset(x, y),

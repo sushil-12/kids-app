@@ -39,6 +39,9 @@ dependencies:
   # HTTP client for AI API calls.
   http: ^1.2.0
 
+  # Backend-served story illustrations, cached on-device (no tracking — COPPA-safe).
+  cached_network_image: ^3.4.1
+
   # Misc.
   path_provider: ^2.1.5
   equatable: ^2.0.7
@@ -71,4 +74,5 @@ flutter:
     - assets/rive/
     - assets/images/
     - assets/images/avatars/
+    - assets/images/onboarding/
     - assets/logos/

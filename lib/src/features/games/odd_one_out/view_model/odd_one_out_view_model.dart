@@ -56,8 +56,7 @@ class OddOneOutState {
     DifficultyLevel.hard: <int>[6, 6, 9, 9, 9],
   };
 
-  static int _idx(int round) =>
-      (round - 1).clamp(0, _countPerRound.length - 1);
+  static int _idx(int round) => (round - 1).clamp(0, _countPerRound.length - 1);
 
   /// Default (medium) tile count for [round]. Used when adaptive difficulty is
   /// off and by tests asserting the baseline grid.
@@ -187,5 +186,6 @@ class OddOneOutViewModel extends Notifier<OddOneOutState> {
   void reset() => state = _round(1);
 }
 
-final oddOneOutProvider =
-    NotifierProvider<OddOneOutViewModel, OddOneOutState>(OddOneOutViewModel.new);
+final oddOneOutProvider = NotifierProvider<OddOneOutViewModel, OddOneOutState>(
+  OddOneOutViewModel.new,
+);

@@ -68,7 +68,8 @@ class CountTapViewModel extends Notifier<CountTapState> {
   CountTapState _round(int round) {
     // (min target, max target, max decoys) per difficulty. Higher counts and
     // more decoys make the "how many?" question harder, never unfair.
-    final (int minTarget, int maxTarget, int maxDecoys) = switch (_difficulty()) {
+    final (int minTarget, int maxTarget, int maxDecoys) =
+        switch (_difficulty()) {
       DifficultyLevel.easy => (1, 3, 2),
       DifficultyLevel.medium => (1, 5, 4),
       DifficultyLevel.hard => (3, 7, 5),
@@ -86,7 +87,9 @@ class CountTapViewModel extends Notifier<CountTapState> {
 
   /// Taps apple [index], ignoring taps once the target is reached.
   void tapItem(int index) {
-    if (state.completed || state.roundComplete || state.tapped.contains(index)) {
+    if (state.completed ||
+        state.roundComplete ||
+        state.tapped.contains(index)) {
       return;
     }
     final Set<int> tapped = <int>{...state.tapped, index};

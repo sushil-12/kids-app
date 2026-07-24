@@ -45,9 +45,10 @@ class ColorByNumberPainter extends CustomPainter {
       } else {
         final int? target = template.byNumber[region.id];
         final Color? hint = target == null ? null : byNumberColor(target);
-        fill.color = (target != null && target == selectedNumber && hint != null)
-            ? hint.withValues(alpha: 0.22)
-            : AppColors.grey;
+        fill.color =
+            (target != null && target == selectedNumber && hint != null)
+                ? hint.withValues(alpha: 0.22)
+                : AppColors.grey;
       }
       canvas.drawPath(region.path, fill);
     }

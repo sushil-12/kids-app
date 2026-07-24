@@ -20,8 +20,8 @@ abstract final class AppTheme {
       brightness: Brightness.light,
     );
 
-    final TextTheme textTheme =
-        GoogleFonts.fredokaTextTheme().apply(bodyColor: AppColors.dark, displayColor: AppColors.dark);
+    final TextTheme textTheme = GoogleFonts.fredokaTextTheme()
+        .apply(bodyColor: AppColors.dark, displayColor: AppColors.dark);
 
     return ThemeData(
       useMaterial3: true,
@@ -32,8 +32,10 @@ abstract final class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(64, 64),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-          textStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+          textStyle:
+              textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
       ),
       cardTheme: CardThemeData(

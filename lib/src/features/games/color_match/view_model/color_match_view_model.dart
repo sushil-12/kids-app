@@ -65,7 +65,8 @@ class ColorMatchState {
   bool get isComplete => completed;
   int get roundsDone => completed ? totalRounds : round - 1;
 
-  ColorMatchState copyWith({Set<int>? found, bool? completed}) => ColorMatchState(
+  ColorMatchState copyWith({Set<int>? found, bool? completed}) =>
+      ColorMatchState(
         items: items,
         target: target,
         found: found ?? this.found,
@@ -83,7 +84,8 @@ class ColorMatchViewModel extends Notifier<ColorMatchState> {
   ColorMatchState build() => _round(1);
 
   ColorMatchState _round(int round) {
-    final List<MatchColor> palette = List<MatchColor>.of(MatchColor.values)..shuffle(_rng);
+    final List<MatchColor> palette = List<MatchColor>.of(MatchColor.values)
+      ..shuffle(_rng);
     final MatchColor target = palette.first;
 
     // 2–3 matching tiles, the rest drawn from other colors. 9 tiles total.
@@ -91,10 +93,16 @@ class ColorMatchViewModel extends Notifier<ColorMatchState> {
     final List<MatchColor> others = palette.skip(1).toList();
     final List<MatchColor> items = <MatchColor>[
       for (int i = 0; i < matching; i++) target,
-      for (int i = 0; i < 9 - matching; i++) others[_rng.nextInt(others.length)],
+      for (int i = 0; i < 9 - matching; i++)
+        others[_rng.nextInt(others.length)],
     ]..shuffle(_rng);
 
-    return ColorMatchState(items: items, target: target, found: <int>{}, round: round);
+    return ColorMatchState(
+      items: items,
+      target: target,
+      found: <int>{},
+      round: round,
+    );
   }
 
   /// Records a correct tap on tile [index].
@@ -121,4 +129,6 @@ class ColorMatchViewModel extends Notifier<ColorMatchState> {
 }
 
 final colorMatchProvider =
-    NotifierProvider<ColorMatchViewModel, ColorMatchState>(ColorMatchViewModel.new);
+    NotifierProvider<ColorMatchViewModel, ColorMatchState>(
+  ColorMatchViewModel.new,
+);

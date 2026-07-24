@@ -82,7 +82,8 @@ class _Card extends StatelessWidget {
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 250),
         transitionBuilder: (Widget child, Animation<double> anim) {
-          final Animation<double> rotate = Tween<double>(begin: math.pi, end: 0).animate(anim);
+          final Animation<double> rotate =
+              Tween<double>(begin: math.pi, end: 0).animate(anim);
           return AnimatedBuilder(
             animation: rotate,
             child: child,
@@ -107,7 +108,11 @@ class _Card extends StatelessWidget {
             : const _Face(
                 key: ValueKey<bool>(false),
                 color: AppColors.purple,
-                child: Icon(Icons.question_mark_rounded, color: Colors.white, size: 48),
+                child: Icon(
+                  Icons.question_mark_rounded,
+                  color: Colors.white,
+                  size: 48,
+                ),
               ),
       ),
     );
