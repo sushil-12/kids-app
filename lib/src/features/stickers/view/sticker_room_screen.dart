@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../rewards/data/sticker.dart';
 import '../../rewards/data/sticker_catalog.dart';
 import '../../rewards/view_model/rewards_view_model.dart';
 
-/// S9 · My Sticker Room. Shows the whole sticker catalog: earned stickers are
-/// bright and full-color, ones still to find are soft, greyed placeholders so
-/// children can see what's left to collect.
+/// S9 · My Sticker Room, in the pastel-clay design language (yellow tint,
+/// matching the Home sticker strip). Shows the whole sticker catalog: earned
+/// stickers are bright and full-color, ones still to find are soft, greyed
+/// placeholders so children can see what's left to collect.
 class StickerRoomScreen extends ConsumerWidget {
   const StickerRoomScreen({super.key});
 
@@ -19,29 +21,47 @@ class StickerRoomScreen extends ConsumerWidget {
     final RewardsState rewards = ref.watch(rewardsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.stickerRoom)),
-      body: Column(
+      body: Stack(
+        fit: StackFit.expand,
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-            child: _ProgressHeader(earned: rewards.earned, total: rewards.total),
-          ),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(20),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-              ),
-              itemCount: kStickers.length,
-              itemBuilder: (BuildContext context, int i) {
-                final Sticker sticker = kStickers[i];
-                return _StickerSlot(
-                  sticker: sticker,
-                  earned: rewards.contains(sticker.id),
-                );
-              },
+          const ClayBackground(tint: AppColors.yellow),
+          SafeArea(
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  child: ClayHeader(
+                    title: l10n.stickerRoom,
+                    tint: AppColors.yellow,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                  child: _ProgressHeader(
+                    earned: rewards.earned,
+                    total: rewards.total,
+                  ),
+                ),
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(20),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                    ),
+                    itemCount: kStickers.length,
+                    itemBuilder: (BuildContext context, int i) {
+                      final Sticker sticker = kStickers[i];
+                      return _StickerSlot(
+                        sticker: sticker,
+                        earned: rewards.contains(sticker.id),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -50,7 +70,8 @@ class StickerRoomScreen extends ConsumerWidget {
   }
 }
 
-/// "{earned} of {total} stickers collected!" with a progress bar.
+/// "{earned} of {total} stickers collected!" with a progress bar, on a white
+/// clay panel.
 class _ProgressHeader extends StatelessWidget {
   const _ProgressHeader({required this.earned, required this.total});
 
@@ -61,30 +82,35 @@ class _ProgressHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final double fraction = total == 0 ? 0 : (earned / total).clamp(0.0, 1.0);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          l10n.stickersCollected(earned, total),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: fraction,
-            minHeight: 12,
-            backgroundColor: AppColors.grey,
-            color: AppColors.coral,
+    return ClayTile(
+      color: AppColors.yellow,
+      fill: Colors.white,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            l10n.stickersCollected(earned, total),
+            style: clayTitle(fontSize: 16),
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: fraction,
+              minHeight: 12,
+              backgroundColor: AppColors.grey,
+              color: AppColors.coral,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-/// One sticker cell. Earned cells pop in full color; locked cells show a faded
-/// glyph behind a soft lock so the goal stays visible but unmistakably "to do".
+/// One sticker cell. Earned cells pop in full clay color; locked cells show a
+/// faded glyph so the goal stays visible but unmistakably "to do".
 class _StickerSlot extends StatelessWidget {
   const _StickerSlot({required this.sticker, required this.earned});
 
@@ -95,14 +121,18 @@ class _StickerSlot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: earned ? Colors.white : AppColors.grey,
+        color: earned ? Colors.white : pastelOf(AppColors.slate, 0.12),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: earned ? Colors.white : Colors.transparent,
+          width: 2.5,
+        ),
         boxShadow: earned
             ? <BoxShadow>[
                 BoxShadow(
                   color: AppColors.yellow.withValues(alpha: 0.4),
                   blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 6),
                 ),
               ]
             : null,

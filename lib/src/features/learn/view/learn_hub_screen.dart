@@ -3,61 +3,62 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
+import '../../../core/widgets/clay_icons.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// S· Learn Hub — entry point to Stories, ABC, and Poems.
+/// S· Learn Hub — entry point to Stories, ABC, and Poems, in the pastel-clay
+/// design language (green tint, matching the Home "Learn" tile).
 class LearnHubScreen extends StatelessWidget {
   const LearnHubScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final ThemeData theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
-      appBar: AppBar(
-        backgroundColor: AppColors.cream,
-        elevation: 0,
-        title: Text(l10n.learnHubTitle, style: theme.textTheme.headlineMedium),
-        centerTitle: false,
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-          children: <Widget>[
-            Text(
-              l10n.learnHubSubtitle,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: AppColors.dark.withValues(alpha: 0.6),
-              ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          const ClayBackground(tint: AppColors.green),
+          SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+              children: <Widget>[
+                ClayHeader(title: l10n.learnHubTitle, tint: AppColors.green),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Text(l10n.learnHubSubtitle, style: clayBody()),
+                ),
+                const SizedBox(height: 20),
+                _LearnCard(
+                  glyph: ClayIconKind.storybook,
+                  title: l10n.dailyStoryTitle,
+                  subtitle: l10n.dailyStorySubtitle,
+                  color: AppColors.coral,
+                  onTap: () => context.push(Routes.learnStory),
+                ),
+                const SizedBox(height: 16),
+                _LearnCard(
+                  glyph: ClayIconKind.abc,
+                  title: l10n.abcTitle,
+                  subtitle: l10n.abcSubtitle,
+                  color: AppColors.teal,
+                  onTap: () => context.push(Routes.learnAbc),
+                ),
+                const SizedBox(height: 16),
+                _LearnCard(
+                  glyph: ClayIconKind.music,
+                  title: l10n.poemsTitle,
+                  subtitle: l10n.poemsSubtitle,
+                  color: AppColors.purple,
+                  onTap: () => context.push(Routes.learnPoems),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            _LearnCard(
-              emoji: '📖',
-              title: l10n.dailyStoryTitle,
-              subtitle: l10n.dailyStorySubtitle,
-              color: AppColors.coral,
-              onTap: () => context.push(Routes.learnStory),
-            ),
-            const SizedBox(height: 16),
-            _LearnCard(
-              emoji: '🔤',
-              title: l10n.abcTitle,
-              subtitle: l10n.abcSubtitle,
-              color: AppColors.teal,
-              onTap: () => context.push(Routes.learnAbc),
-            ),
-            const SizedBox(height: 16),
-            _LearnCard(
-              emoji: '🎵',
-              title: l10n.poemsTitle,
-              subtitle: l10n.poemsSubtitle,
-              color: AppColors.purple,
-              onTap: () => context.push(Routes.learnPoems),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -65,14 +66,14 @@ class LearnHubScreen extends StatelessWidget {
 
 class _LearnCard extends StatelessWidget {
   const _LearnCard({
-    required this.emoji,
+    required this.glyph,
     required this.title,
     required this.subtitle,
     required this.color,
     required this.onTap,
   });
 
-  final String emoji;
+  final ClayIconKind glyph;
   final String title;
   final String subtitle;
   final Color color;
@@ -80,44 +81,26 @@ class _LearnCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Material(
+    return ClayTile(
       color: color,
-      borderRadius: BorderRadius.circular(28),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(28),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
-          child: Row(
-            children: <Widget>[
-              Text(emoji, style: const TextStyle(fontSize: 44)),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      title,
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(color: Colors.white),
-                    ),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.white70,
-                size: 28,
-              ),
-            ],
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+      onTap: onTap,
+      child: Row(
+        children: <Widget>[
+          ClayIcon(kind: glyph, tint: color, size: 64),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(title, style: clayTitle(fontSize: 19)),
+                const SizedBox(height: 2),
+                Text(subtitle, style: clayBody(fontSize: 13)),
+              ],
+            ),
           ),
-        ),
+          Icon(Icons.chevron_right_rounded, color: color, size: 28),
+        ],
       ),
     );
   }

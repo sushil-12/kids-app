@@ -80,8 +80,7 @@ class AudioService {
         await _tts.awaitSpeakCompletion(true);
         _ttsConfigured = true;
       }
-      final bool hindi =
-          languageCode == null ? _isHindi : languageCode == 'hi';
+      final bool hindi = languageCode == null ? _isHindi : languageCode == 'hi';
       await _tts.stop();
       await _tts.setLanguage(hindi ? 'hi-IN' : 'en-US');
       await _tts.setSpeechRate(0.42); // slower & clearer for young children
@@ -187,10 +186,16 @@ class AudioService {
   /// setup, and a stop that lands in that window must win.
   int _musicSession = 0;
 
-  /// Starts (or switches to) a looping background track at a gentle volume so
-  /// narration stays clearly audible above it.
-  Future<void> playMusic(String track) async {
+  /// Current music-bus volume, so [setMusicVolume] (ducking) has a level to
+  /// restore toward and [playMusic] starts at the right level.
+  double _musicVolume = 0.3;
+
+  /// Starts (or switches to) a looping background track. [volume] defaults to a
+  /// gentle level so narration stays clearly audible above it; the story mixer
+  /// passes the track's authored volume instead.
+  Future<void> playMusic(String track, {double volume = 0.3}) async {
     if (!_enabled) return;
+    _musicVolume = volume.clamp(0.0, 1.0);
     final int session = ++_musicSession;
     final String file = 'music/$track.mp3';
     if (!await _isSfxAvailable(file)) return;
@@ -198,7 +203,7 @@ class AudioService {
       final AudioPlayer player = _music ??= AudioPlayer();
       await player.stop();
       await player.setReleaseMode(ReleaseMode.loop);
-      await player.setVolume(0.3);
+      await player.setVolume(_musicVolume);
       if (session != _musicSession) return; // stopped while setting up
       await player.play(AssetSource('audio/$file'));
     } catch (_) {
@@ -206,9 +211,53 @@ class AudioService {
     }
   }
 
+  /// Sets the music-bus volume live — used by the story mixer to duck the bed
+  /// under narration/dialogue and restore it after.
+  Future<void> setMusicVolume(double volume) async {
+    _musicVolume = volume.clamp(0.0, 1.0);
+    final AudioPlayer? player = _music;
+    if (player == null) return;
+    try {
+      await player.setVolume(_musicVolume);
+    } catch (_) {
+      // Ignore — a missing/So-far-unstarted track has nothing to set.
+    }
+  }
+
   void stopMusic() {
     _musicSession++; // abort any playMusic() still setting up
     final AudioPlayer? player = _music;
+    if (player != null) unawaited(player.stop());
+  }
+
+  // ---- Ambience -------------------------------------------------------------
+  // A second looping player, independent of music, for the environment bed
+  // (meadow, pond, rain…). Files live in assets/audio/ambience/<bed>.mp3; a
+  // missing file is a graceful no-op like music/SFX.
+
+  AudioPlayer? _ambience;
+  int _ambienceSession = 0;
+
+  Future<void> playAmbience(String bed, {double volume = 0.35}) async {
+    if (!_enabled) return;
+    final int session = ++_ambienceSession;
+    final String file = 'ambience/$bed.mp3';
+    if (!await _isSfxAvailable(file)) return;
+    try {
+      final AudioPlayer player = _ambience ??= AudioPlayer();
+      await player.stop();
+      await player.setReleaseMode(ReleaseMode.loop);
+      await player.setVolume(volume.clamp(0.0, 1.0));
+      if (session != _ambienceSession) return;
+      await player.play(AssetSource('audio/$file'));
+    } catch (_) {
+      // Ignore playback errors so a bad file never breaks the UI.
+    }
+  }
+
+  void stopAmbience() {
+    _ambienceSession++;
+    final AudioPlayer? player = _ambience;
     if (player != null) unawaited(player.stop());
   }
 
@@ -219,6 +268,8 @@ class AudioService {
     }
     final AudioPlayer? music = _music;
     if (music != null) unawaited(music.dispose());
+    final AudioPlayer? ambience = _ambience;
+    if (ambience != null) unawaited(ambience.dispose());
   }
 }
 

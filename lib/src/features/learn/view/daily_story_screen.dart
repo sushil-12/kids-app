@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/learn_content.dart';
 import '../view_model/learn_providers.dart';
@@ -18,28 +19,45 @@ class DailyStoryScreen extends ConsumerWidget {
     final AsyncValue<DailyStory> async = ref.watch(dailyStoryProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
-      appBar: AppBar(
-        backgroundColor: AppColors.cream,
-        elevation: 0,
-        title: Text(
-          l10n.dailyStoryTitle,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        centerTitle: false,
-      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           ref.read(storyRefreshProvider.notifier).update((int n) => n + 1);
         },
         backgroundColor: AppColors.coral,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Colors.white, width: 2.5),
+        ),
         icon: const Text('✨', style: TextStyle(fontSize: 18)),
         label: Text(l10n.newStoryButton),
       ),
-      body: async.when(
-        loading: () => _LoadingView(message: l10n.contentLoading),
-        error: (_, __) => _LoadingView(message: l10n.contentLoading),
-        data: (DailyStory story) => _StoryView(story: story, l10n: l10n),
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          const ClayBackground(tint: AppColors.coral),
+          SafeArea(
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  child: ClayHeader(
+                    title: l10n.dailyStoryTitle,
+                    tint: AppColors.coral,
+                  ),
+                ),
+                Expanded(
+                  child: async.when(
+                    loading: () => _LoadingView(message: l10n.contentLoading),
+                    error: (_, __) =>
+                        _LoadingView(message: l10n.contentLoading),
+                    data: (DailyStory story) =>
+                        _StoryView(story: story, l10n: l10n),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -77,7 +95,7 @@ class _StoryView extends StatelessWidget {
               backgroundColor: AppColors.purple,
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            onPressed: () => context.push(Routes.learnStoryPlayer),
+            onPressed: () => context.push(Routes.learnStoryCinema),
             icon: const Text('🎬', style: TextStyle(fontSize: 22)),
             label: Text(
               l10n.watchStoryButton,
@@ -95,9 +113,9 @@ class _StoryView extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               boxShadow: <BoxShadow>[
                 BoxShadow(
-                  color: AppColors.dark.withValues(alpha: 0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  color: AppColors.coral.withValues(alpha: 0.16),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
@@ -168,8 +186,8 @@ class _LoadingView extends StatelessWidget {
           Text(
             message,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppColors.dark.withValues(alpha: 0.6),
-            ),
+                  color: AppColors.dark.withValues(alpha: 0.6),
+                ),
             textAlign: TextAlign.center,
           ),
         ],

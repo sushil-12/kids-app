@@ -28,7 +28,13 @@ abstract final class CinematicFallbacks {
             'across the sky, looking for water.',
         camera: CameraEffect.zoomIn,
         props: <SceneProp>[
-          SceneProp(id: 'sun', kind: PropKind.sun, x: 0.78, y: 0.16, scale: 1.2),
+          SceneProp(
+            id: 'sun',
+            kind: PropKind.sun,
+            x: 0.78,
+            y: 0.16,
+            scale: 1.2,
+          ),
         ],
         characters: <SceneCharacter>[
           SceneCharacter(
@@ -57,7 +63,13 @@ abstract final class CinematicFallbacks {
         camera: CameraEffect.panRight,
         props: <SceneProp>[
           SceneProp(id: 'house', kind: PropKind.house, x: 0.2, y: 0.68),
-          SceneProp(id: 'tree', kind: PropKind.tree, x: 0.82, y: 0.6, scale: 1.1),
+          SceneProp(
+            id: 'tree',
+            kind: PropKind.tree,
+            x: 0.82,
+            y: 0.6,
+            scale: 1.1,
+          ),
         ],
         characters: <SceneCharacter>[
           SceneCharacter(
@@ -79,7 +91,13 @@ abstract final class CinematicFallbacks {
             'the pot?',
         camera: CameraEffect.zoomIn,
         props: <SceneProp>[
-          SceneProp(id: 'tree', kind: PropKind.tree, x: 0.75, y: 0.55, scale: 1.2),
+          SceneProp(
+            id: 'tree',
+            kind: PropKind.tree,
+            x: 0.75,
+            y: 0.55,
+            scale: 1.2,
+          ),
           SceneProp(id: 'pot', kind: PropKind.pot, x: 0.6, y: 0.78),
         ],
         characters: <SceneCharacter>[
@@ -99,13 +117,18 @@ abstract final class CinematicFallbacks {
         title: 'Clever Pebbles',
         minDuration: 9,
         background: SceneBackground.village,
-        narration:
-            'The water was too low to reach. So the clever crow dropped '
+        narration: 'The water was too low to reach. So the clever crow dropped '
             'little pebbles into the pot, one by one, and the water rose up '
             'and up!',
         props: <SceneProp>[
           SceneProp(id: 'pot', kind: PropKind.pot, x: 0.5, y: 0.72, scale: 1.3),
-          SceneProp(id: 'rock', kind: PropKind.rock, x: 0.25, y: 0.82, scale: 0.8),
+          SceneProp(
+            id: 'rock',
+            kind: PropKind.rock,
+            x: 0.25,
+            y: 0.82,
+            scale: 0.8,
+          ),
         ],
         characters: <SceneCharacter>[
           SceneCharacter(
@@ -122,8 +145,7 @@ abstract final class CinematicFallbacks {
         id: 5,
         title: 'A Happy Ending',
         background: SceneBackground.sky,
-        narration:
-            'The crow drank the cool water and flew away happy. When '
+        narration: 'The crow drank the cool water and flew away happy. When '
             'something is hard, think and try — where there is a will, there '
             'is a way!',
         camera: CameraEffect.zoomOut,
@@ -166,7 +188,13 @@ abstract final class CinematicFallbacks {
             'में उड़ रहा था।',
         camera: CameraEffect.zoomIn,
         props: <SceneProp>[
-          SceneProp(id: 'sun', kind: PropKind.sun, x: 0.78, y: 0.16, scale: 1.2),
+          SceneProp(
+            id: 'sun',
+            kind: PropKind.sun,
+            x: 0.78,
+            y: 0.16,
+            scale: 1.2,
+          ),
         ],
         characters: <SceneCharacter>[
           SceneCharacter(
@@ -195,7 +223,13 @@ abstract final class CinematicFallbacks {
         camera: CameraEffect.panRight,
         props: <SceneProp>[
           SceneProp(id: 'house', kind: PropKind.house, x: 0.2, y: 0.68),
-          SceneProp(id: 'tree', kind: PropKind.tree, x: 0.82, y: 0.6, scale: 1.1),
+          SceneProp(
+            id: 'tree',
+            kind: PropKind.tree,
+            x: 0.82,
+            y: 0.6,
+            scale: 1.1,
+          ),
         ],
         characters: <SceneCharacter>[
           SceneCharacter(
@@ -212,12 +246,17 @@ abstract final class CinematicFallbacks {
         id: 3,
         title: 'घड़ा मिला',
         background: SceneBackground.village,
-        narration:
-            'तभी उसे पेड़ के नीचे एक घड़ा दिखा! क्या तुम कौए को घड़े तक '
+        narration: 'तभी उसे पेड़ के नीचे एक घड़ा दिखा! क्या तुम कौए को घड़े तक '
             'पहुँचा सकते हो?',
         camera: CameraEffect.zoomIn,
         props: <SceneProp>[
-          SceneProp(id: 'tree', kind: PropKind.tree, x: 0.75, y: 0.55, scale: 1.2),
+          SceneProp(
+            id: 'tree',
+            kind: PropKind.tree,
+            x: 0.75,
+            y: 0.55,
+            scale: 1.2,
+          ),
           SceneProp(id: 'pot', kind: PropKind.pot, x: 0.6, y: 0.78),
         ],
         characters: <SceneCharacter>[
@@ -242,7 +281,13 @@ abstract final class CinematicFallbacks {
             'डाले, और पानी ऊपर आता गया!',
         props: <SceneProp>[
           SceneProp(id: 'pot', kind: PropKind.pot, x: 0.5, y: 0.72, scale: 1.3),
-          SceneProp(id: 'rock', kind: PropKind.rock, x: 0.25, y: 0.82, scale: 0.8),
+          SceneProp(
+            id: 'rock',
+            kind: PropKind.rock,
+            x: 0.25,
+            y: 0.82,
+            scale: 0.8,
+          ),
         ],
         characters: <SceneCharacter>[
           SceneCharacter(

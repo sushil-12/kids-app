@@ -62,8 +62,7 @@ class EphemeralFeatureFlagStore implements FeatureFlagStore {
   bool? overrideFor(String key) => _values[key];
 
   @override
-  void setOverride(String key, {required bool value}) =>
-      _values[key] = value;
+  void setOverride(String key, {required bool value}) => _values[key] = value;
 }
 
 /// Hive-backed [FeatureFlagStore]. The box is opened once at app start
@@ -83,8 +82,7 @@ class HiveFeatureFlagStore implements FeatureFlagStore {
   }
 
   @override
-  void setOverride(String key, {required bool value}) =>
-      _box.put(key, value);
+  void setOverride(String key, {required bool value}) => _box.put(key, value);
 }
 
 /// Injected flag persistence. Defaults to an in-memory store (code defaults);

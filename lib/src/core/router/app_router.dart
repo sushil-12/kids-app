@@ -5,6 +5,7 @@ import '../../features/learn/view/daily_story_screen.dart';
 import '../../features/learn/view/learn_hub_screen.dart';
 import '../../features/learn/view/poem_screen.dart';
 import '../../features/learn/view/story_player_screen.dart';
+import '../../features/learn/view/story_player_v2_screen.dart';
 import '../../features/coloring/view/color_by_number_screen.dart';
 import '../../features/creative_canvas/data/creative_guide.dart';
 import '../../features/creative_canvas/view/creative_draw_screen.dart';
@@ -23,6 +24,7 @@ import '../../features/games/shape_sorter/view/shape_sorter_screen.dart';
 import '../../features/games/shared/games_hub_screen.dart';
 import '../../features/home/view/home_screen.dart';
 import '../../features/onboarding/view/onboarding_screen.dart';
+import '../../features/onboarding/view/profile_setup_screen.dart';
 import '../../features/onboarding/view/splash_screen.dart';
 import '../../features/onboarding/view/welcome_screen.dart';
 import '../../features/admin/view/admin_panel_screen.dart';
@@ -36,6 +38,7 @@ abstract final class Routes {
   static const String splash = '/';
   static const String welcome = '/welcome';
   static const String onboarding = '/onboarding';
+  static const String profileSetup = '/onboarding/profile';
   static const String home = '/home';
   static const String gallery = '/coloring';
   static const String canvas = '/coloring/canvas';
@@ -54,6 +57,7 @@ abstract final class Routes {
   static const String learn = '/learn';
   static const String learnStory = '/learn/story';
   static const String learnStoryPlayer = '/learn/story/player';
+  static const String learnStoryCinema = '/learn/story/cinema';
   static const String learnAbc = '/learn/abc';
   static const String learnPoems = '/learn/poems';
   static const String stickers = '/stickers';
@@ -69,7 +73,14 @@ final GoRouter appRouter = GoRouter(
   routes: <RouteBase>[
     GoRoute(path: Routes.splash, builder: (_, __) => const SplashScreen()),
     GoRoute(path: Routes.welcome, builder: (_, __) => const WelcomeScreen()),
-    GoRoute(path: Routes.onboarding, builder: (_, __) => const OnboardingScreen()),
+    GoRoute(
+      path: Routes.onboarding,
+      builder: (_, __) => const OnboardingScreen(),
+    ),
+    GoRoute(
+      path: Routes.profileSetup,
+      builder: (_, __) => const ProfileSetupScreen(),
+    ),
     GoRoute(path: Routes.home, builder: (_, __) => const HomeScreen()),
     GoRoute(
       path: Routes.gallery,
@@ -77,13 +88,15 @@ final GoRouter appRouter = GoRouter(
       routes: <RouteBase>[
         GoRoute(
           path: 'canvas',
-          builder: (_, GoRouterState state) =>
-              ColoringCanvasScreen(pageId: state.uri.queryParameters['page'] ?? 'lion'),
+          builder: (_, GoRouterState state) => ColoringCanvasScreen(
+            pageId: state.uri.queryParameters['page'] ?? 'lion',
+          ),
         ),
         GoRoute(
           path: 'numbers',
-          builder: (_, GoRouterState state) =>
-              ColorByNumberScreen(pageId: state.uri.queryParameters['page'] ?? 'sun'),
+          builder: (_, GoRouterState state) => ColorByNumberScreen(
+            pageId: state.uri.queryParameters['page'] ?? 'sun',
+          ),
         ),
       ],
     ),
@@ -125,13 +138,20 @@ final GoRouter appRouter = GoRouter(
               path: 'player',
               builder: (_, __) => const StoryPlayerScreen(),
             ),
+            GoRoute(
+              path: 'cinema',
+              builder: (_, __) => const StoryPlayerV2Screen(),
+            ),
           ],
         ),
         GoRoute(path: 'abc', builder: (_, __) => const AbcTutorialScreen()),
         GoRoute(path: 'poems', builder: (_, __) => const PoemScreen()),
       ],
     ),
-    GoRoute(path: Routes.stickers, builder: (_, __) => const StickerRoomScreen()),
+    GoRoute(
+      path: Routes.stickers,
+      builder: (_, __) => const StickerRoomScreen(),
+    ),
     GoRoute(path: Routes.paywall, builder: (_, __) => const PaywallScreen()),
     GoRoute(path: Routes.settings, builder: (_, __) => const SettingsScreen()),
     GoRoute(path: Routes.admin, builder: (_, __) => const AdminPanelScreen()),

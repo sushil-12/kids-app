@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/router/locale_controller.dart';
 import '../../../core/services/sound_settings_store.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../admin/view/parent_gate.dart';
 import '../../profile/data/child_profile.dart';
@@ -20,90 +22,125 @@ class SettingsScreen extends ConsumerWidget {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final ChildProfile? profile = ref.watch(profileProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsTitle)),
-      body: ListView(
+      body: Stack(
+        fit: StackFit.expand,
         children: <Widget>[
-          ListTile(
-            leading: const Icon(Icons.workspace_premium),
-            title: Text(l10n.manageSubscription),
-          ),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Language / भाषा'),
-            trailing: DropdownButton<Locale?>(
-              value: ref.watch(localeControllerProvider),
-              hint: const Text('Auto'),
-              items: const <DropdownMenuItem<Locale?>>[
-                DropdownMenuItem<Locale?>(value: null, child: Text('Auto')),
-                DropdownMenuItem<Locale?>(value: Locale('en'), child: Text('English')),
-                DropdownMenuItem<Locale?>(value: Locale('hi'), child: Text('हिन्दी')),
+          // Indigo = the grown-up accent; this screen sits behind the gate.
+          const ClayBackground(tint: AppColors.indigo),
+          SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+              children: <Widget>[
+                ClayHeader(title: l10n.settingsTitle, tint: AppColors.indigo),
+                const SizedBox(height: 20),
+                ClayTile(
+                  color: AppColors.indigo,
+                  fill: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    children: <Widget>[
+                      ListTile(
+                        leading: const Icon(Icons.workspace_premium),
+                        title: Text(l10n.manageSubscription),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.language),
+                        title: const Text('Language / भाषा'),
+                        trailing: DropdownButton<Locale?>(
+                          value: ref.watch(localeControllerProvider),
+                          hint: const Text('Auto'),
+                          items: const <DropdownMenuItem<Locale?>>[
+                            DropdownMenuItem<Locale?>(
+                              value: null,
+                              child: Text('Auto'),
+                            ),
+                            DropdownMenuItem<Locale?>(
+                              value: Locale('en'),
+                              child: Text('English'),
+                            ),
+                            DropdownMenuItem<Locale?>(
+                              value: Locale('hi'),
+                              child: Text('हिन्दी'),
+                            ),
+                          ],
+                          onChanged: (Locale? value) => ref
+                              .read(localeControllerProvider.notifier)
+                              .setLocale(value),
+                        ),
+                      ),
+                      // Voice + sound-effects master switch (House Rule §5: sound is core
+                      // to how young children learn). Flips the whole AudioService silent.
+                      SwitchListTile(
+                        secondary: const Icon(Icons.volume_up),
+                        title: Text(l10n.soundsAndMusic),
+                        value: ref.watch(
+                          soundSettingsProvider
+                              .select((SoundSettings s) => s.soundEnabled),
+                        ),
+                        onChanged: (bool value) => ref
+                            .read(soundSettingsProvider.notifier)
+                            .setSoundEnabled(value),
+                      ),
+                      // Developer tool to audition every SFX + voice line on-device.
+                      ListTile(
+                        leading: const Icon(Icons.graphic_eq),
+                        title: const Text('Sound Lab'),
+                        onTap: () => context.push(Routes.soundLab),
+                      ),
+                      // Age band only appears once a profile exists (i.e. post-onboarding).
+                      if (profile != null)
+                        ListTile(
+                          leading: const Icon(Icons.cake_outlined),
+                          title: Text(l10n.ageBandSetting),
+                          trailing: DropdownButton<AgeBand>(
+                            value: profile.ageBand,
+                            items: <DropdownMenuItem<AgeBand>>[
+                              DropdownMenuItem<AgeBand>(
+                                value: AgeBand.junior,
+                                child: Text(l10n.ageBand24),
+                              ),
+                              DropdownMenuItem<AgeBand>(
+                                value: AgeBand.senior,
+                                child: Text(l10n.ageBand56),
+                              ),
+                            ],
+                            onChanged: (AgeBand? value) {
+                              if (value != null) {
+                                ref
+                                    .read(profileProvider.notifier)
+                                    .setAgeBand(value);
+                              }
+                            },
+                          ),
+                        ),
+                      ListTile(
+                        leading: const Icon(Icons.privacy_tip),
+                        title: Text(l10n.privacyPolicy),
+                      ),
+                      // Grown-up-only content tools — guarded by the parent gate (§7).
+                      // ListTile(
+                      //   leading:
+                      //       const Icon(Icons.admin_panel_settings_outlined),
+                      //   title: Text(l10n.adminTitle),
+                      //   onTap: () async {
+                      //     final bool ok = await showParentGate(context);
+                      //     if (ok && context.mounted) context.push(Routes.admin);
+                      //   },
+                      // ),
+                      if (profile != null)
+                        ListTile(
+                          leading: const Icon(Icons.delete_outline),
+                          title: Text(l10n.deleteProfile),
+                          textColor: Colors.red,
+                          iconColor: Colors.red,
+                          onTap: () => _confirmDelete(context, ref),
+                        ),
+                    ],
+                  ),
+                ),
               ],
-              onChanged: (Locale? value) =>
-                  ref.read(localeControllerProvider.notifier).setLocale(value),
             ),
           ),
-          // Voice + sound-effects master switch (House Rule §5: sound is core
-          // to how young children learn). Flips the whole AudioService silent.
-          SwitchListTile(
-            secondary: const Icon(Icons.volume_up),
-            title: Text(l10n.soundsAndMusic),
-            value: ref.watch(
-              soundSettingsProvider.select((SoundSettings s) => s.soundEnabled),
-            ),
-            onChanged: (bool value) =>
-                ref.read(soundSettingsProvider.notifier).setSoundEnabled(value),
-          ),
-          // Developer tool to audition every SFX + voice line on-device.
-          ListTile(
-            leading: const Icon(Icons.graphic_eq),
-            title: const Text('Sound Lab'),
-            onTap: () => context.push(Routes.soundLab),
-          ),
-          // Age band only appears once a profile exists (i.e. post-onboarding).
-          if (profile != null)
-            ListTile(
-              leading: const Icon(Icons.cake_outlined),
-              title: Text(l10n.ageBandSetting),
-              trailing: DropdownButton<AgeBand>(
-                value: profile.ageBand,
-                items: <DropdownMenuItem<AgeBand>>[
-                  DropdownMenuItem<AgeBand>(
-                    value: AgeBand.junior,
-                    child: Text(l10n.ageBand24),
-                  ),
-                  DropdownMenuItem<AgeBand>(
-                    value: AgeBand.senior,
-                    child: Text(l10n.ageBand56),
-                  ),
-                ],
-                onChanged: (AgeBand? value) {
-                  if (value != null) {
-                    ref.read(profileProvider.notifier).setAgeBand(value);
-                  }
-                },
-              ),
-            ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip),
-            title: Text(l10n.privacyPolicy),
-          ),
-          // Grown-up-only content tools — guarded by the parent gate (§7).
-          ListTile(
-            leading: const Icon(Icons.admin_panel_settings_outlined),
-            title: Text(l10n.adminTitle),
-            onTap: () async {
-              final bool ok = await showParentGate(context);
-              if (ok && context.mounted) context.push(Routes.admin);
-            },
-          ),
-          if (profile != null)
-            ListTile(
-              leading: const Icon(Icons.delete_outline),
-              title: Text(l10n.deleteProfile),
-              textColor: Colors.red,
-              iconColor: Colors.red,
-              onTap: () => _confirmDelete(context, ref),
-            ),
         ],
       ),
     );

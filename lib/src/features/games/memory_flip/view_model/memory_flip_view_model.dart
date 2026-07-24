@@ -45,7 +45,8 @@ class MemoryFlipState {
   bool get busy => mismatch.isNotEmpty;
   int get matchedPairs => cards.where((MemoryCard c) => c.matched).length ~/ 2;
   int get totalPairs => cards.length ~/ 2;
-  bool get isComplete => cards.isNotEmpty && cards.every((MemoryCard c) => c.matched);
+  bool get isComplete =>
+      cards.isNotEmpty && cards.every((MemoryCard c) => c.matched);
 
   MemoryFlipState copyWith({
     List<MemoryCard>? cards,
@@ -125,4 +126,6 @@ class MemoryFlipViewModel extends Notifier<MemoryFlipState> {
 }
 
 final memoryFlipProvider =
-    NotifierProvider<MemoryFlipViewModel, MemoryFlipState>(MemoryFlipViewModel.new);
+    NotifierProvider<MemoryFlipViewModel, MemoryFlipState>(
+  MemoryFlipViewModel.new,
+);

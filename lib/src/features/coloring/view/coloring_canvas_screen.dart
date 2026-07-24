@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../rewards/view_model/rewards_view_model.dart';
 import '../data/coloring_template.dart';
@@ -17,7 +18,8 @@ class ColoringCanvasScreen extends ConsumerStatefulWidget {
   final String pageId;
 
   @override
-  ConsumerState<ColoringCanvasScreen> createState() => _ColoringCanvasScreenState();
+  ConsumerState<ColoringCanvasScreen> createState() =>
+      _ColoringCanvasScreenState();
 }
 
 class _ColoringCanvasScreenState extends ConsumerState<ColoringCanvasScreen> {
@@ -38,31 +40,42 @@ class _ColoringCanvasScreenState extends ConsumerState<ColoringCanvasScreen> {
     final CanvasViewModel vm = ref.read(canvasViewModelProvider(id).notifier);
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            _TopBar(title: state.template.title),
-            Expanded(child: _Canvas(state: state, vm: vm, tick: _tick)),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                l10n.pickAColor,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: AppColors.dark.withValues(alpha: 0.6),
-                    ),
-              ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          // Kept subtle so the child's color choices stay true on the canvas.
+          const ClayBackground(tint: AppColors.coral),
+          SafeArea(
+            child: Column(
+              children: <Widget>[
+                _TopBar(title: state.template.title),
+                Expanded(child: _Canvas(state: state, vm: vm, tick: _tick)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(l10n.pickAColor, style: clayBody(fontSize: 13)),
+                ),
+                _ToolBar(state: state, vm: vm),
+                const SizedBox(height: 10),
+                _Palette(
+                  selected: state.selectedColor,
+                  onSelect: vm.selectColor,
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ClayButton(
+                    label: l10n.doneButton,
+                    color: AppColors.green,
+                    trailingIcon: Icons.check_rounded,
+                    onTap: () =>
+                        _celebrate(context, state.template.stickerRewardId),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
             ),
-            _ToolBar(state: state, vm: vm),
-            const SizedBox(height: 10),
-            _Palette(selected: state.selectedColor, onSelect: vm.selectColor),
-            const SizedBox(height: 8),
-            _DoneButton(
-              label: l10n.doneButton,
-              onDone: () => _celebrate(context, state.template.stickerRewardId),
-            ),
-            const SizedBox(height: 10),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -76,9 +89,13 @@ class _ColoringCanvasScreenState extends ConsumerState<ColoringCanvasScreen> {
       context: context,
       builder: (BuildContext ctx) {
         final AppLocalizations l10n = AppLocalizations.of(ctx);
+        // Clay dialog, matching the shared game celebration styling.
         return AlertDialog(
-          backgroundColor: AppColors.purple,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          backgroundColor: pastelOf(AppColors.purple, 0.25),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+            side: const BorderSide(color: Colors.white, width: 2.5),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -86,24 +103,23 @@ class _ColoringCanvasScreenState extends ConsumerState<ColoringCanvasScreen> {
               const SizedBox(height: 8),
               Text(
                 l10n.celebrationTitle,
-                style: Theme.of(ctx).textTheme.headlineMedium?.copyWith(color: Colors.white),
+                textAlign: TextAlign.center,
+                style: clayTitle(fontSize: 24),
               ),
               const SizedBox(height: 4),
               Text(
                 award.isNew ? l10n.newStickerEarned : l10n.allStickersEarned,
-                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(color: AppColors.cream),
+                textAlign: TextAlign.center,
+                style: clayBody(),
               ),
             ],
           ),
           actionsAlignment: MainAxisAlignment.center,
           actions: <Widget>[
-            FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: AppColors.yellow),
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(
-                l10n.colorAgain,
-                style: const TextStyle(color: AppColors.dark),
-              ),
+            ClayButton(
+              label: l10n.colorAgain,
+              color: AppColors.purple,
+              onTap: () => Navigator.of(ctx).pop(),
             ),
           ],
         );
@@ -122,20 +138,22 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       child: Row(
         children: <Widget>[
-          IconButton.filledTonal(
-            onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back_rounded),
+          ClayIconButton(
+            icon: Icons.arrow_back_rounded,
+            tint: AppColors.coral,
+            onTap: () => context.pop(),
           ),
           Expanded(
             child: Text(
               title,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: clayTitle(fontSize: 20),
             ),
           ),
-          IconButton.filledTonal(
-            onPressed: () {},
-            icon: const Icon(Icons.volume_up_rounded),
+          ClayIconButton(
+            icon: Icons.volume_up_rounded,
+            tint: AppColors.coral,
+            onTap: () {},
           ),
         ],
       ),
@@ -158,11 +176,12 @@ class _Canvas extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: Colors.white, width: 2.5),
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: AppColors.dark.withValues(alpha: 0.08),
+              color: AppColors.coral.withValues(alpha: 0.18),
               blurRadius: 18,
-              offset: const Offset(0, 8),
+              offset: const Offset(0, 10),
             ),
           ],
         ),
@@ -339,29 +358,6 @@ class _Palette extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _DoneButton extends StatelessWidget {
-  const _DoneButton({required this.label, required this.onDone});
-
-  final String label;
-  final VoidCallback onDone;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: FilledButton.icon(
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.green,
-          minimumSize: const Size.fromHeight(60),
-        ),
-        onPressed: onDone,
-        icon: const Icon(Icons.check_rounded),
-        label: Text(label),
       ),
     );
   }

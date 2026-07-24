@@ -54,8 +54,7 @@ class AdminState {
     List<AdminLogEntry>? log,
   }) =>
       AdminState(
-        adminKey:
-            adminKey == _sentinel ? this.adminKey : adminKey as String?,
+        adminKey: adminKey == _sentinel ? this.adminKey : adminKey as String?,
         stats: stats ?? this.stats,
         sources: sources ?? this.sources,
         sourcesLoading: sourcesLoading ?? this.sourcesLoading,
@@ -142,7 +141,9 @@ class AdminController extends Notifier<AdminState> {
 
   String _describe(Object e) {
     if (e is BackendException) {
-      return e.statusCode == 401 ? 'unauthorized (check key)' : 'HTTP ${e.statusCode}';
+      return e.statusCode == 401
+          ? 'unauthorized (check key)'
+          : 'HTTP ${e.statusCode}';
     }
     return 'network error';
   }

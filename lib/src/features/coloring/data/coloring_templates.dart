@@ -67,8 +67,10 @@ ColoringTemplate _sun() {
   for (int i = 0; i < n; i++) {
     final double a = (i / n) * 2 * math.pi;
     final Offset tip = Offset(cx + 42 * math.cos(a), cy + 42 * math.sin(a));
-    final Offset b1 = Offset(cx + 26 * math.cos(a - 0.14), cy + 26 * math.sin(a - 0.14));
-    final Offset b2 = Offset(cx + 26 * math.cos(a + 0.14), cy + 26 * math.sin(a + 0.14));
+    final Offset b1 =
+        Offset(cx + 26 * math.cos(a - 0.14), cy + 26 * math.sin(a - 0.14));
+    final Offset b2 =
+        Offset(cx + 26 * math.cos(a + 0.14), cy + 26 * math.sin(a + 0.14));
     rays
       ..moveTo(b1.dx, b1.dy)
       ..lineTo(tip.dx, tip.dy)
@@ -77,8 +79,11 @@ ColoringTemplate _sun() {
   }
   final Path body = _circle(cx, cy, 24);
   final Path smile = Path()
-    ..addArc(Rect.fromCircle(center: const Offset(cx, cy + 2), radius: 12),
-        0.25 * math.pi, 0.5 * math.pi);
+    ..addArc(
+      Rect.fromCircle(center: const Offset(cx, cy + 2), radius: 12),
+      0.25 * math.pi,
+      0.5 * math.pi,
+    );
 
   return ColoringTemplate(
     id: 'sun',
@@ -103,13 +108,26 @@ ColoringTemplate _sun() {
 
 ColoringTemplate _fish() {
   final Path body = Path()
-    ..addOval(Rect.fromCenter(center: const Offset(54, 52), width: 50, height: 32));
-  final Path tail = _triangle(const Offset(34, 52), const Offset(14, 38), const Offset(14, 66));
-  final Path fin = _triangle(const Offset(54, 38), const Offset(44, 24), const Offset(66, 32));
+    ..addOval(
+      Rect.fromCenter(center: const Offset(54, 52), width: 50, height: 32),
+    );
+  final Path tail = _triangle(
+    const Offset(34, 52),
+    const Offset(14, 38),
+    const Offset(14, 66),
+  );
+  final Path fin = _triangle(
+    const Offset(54, 38),
+    const Offset(44, 24),
+    const Offset(66, 32),
+  );
   final Path eyeWhite = _circle(68, 46, 5);
   final Path mouth = Path()
-    ..addArc(Rect.fromCircle(center: const Offset(76, 54), radius: 5),
-        1.1 * math.pi, 0.8 * math.pi);
+    ..addArc(
+      Rect.fromCircle(center: const Offset(76, 54), radius: 5),
+      1.1 * math.pi,
+      0.8 * math.pi,
+    );
   final Path bubbles = Path()
     ..addOval(Rect.fromCircle(center: const Offset(84, 36), radius: 3))
     ..addOval(Rect.fromCircle(center: const Offset(90, 28), radius: 2));
@@ -146,7 +164,10 @@ ColoringTemplate _flower() {
   for (int i = 0; i < 6; i++) {
     final double a = (i / 6) * 2 * math.pi;
     petals.addOval(
-      Rect.fromCircle(center: Offset(cx + 15 * math.cos(a), cy + 15 * math.sin(a)), radius: 9),
+      Rect.fromCircle(
+        center: Offset(cx + 15 * math.cos(a), cy + 15 * math.sin(a)),
+        radius: 9,
+      ),
     );
   }
   final Path center = _circle(cx, cy, 10);
@@ -157,9 +178,13 @@ ColoringTemplate _flower() {
     ..lineTo(53, 48)
     ..close();
   final Path leftLeaf = Path()
-    ..addOval(Rect.fromCenter(center: const Offset(36, 70), width: 22, height: 12));
+    ..addOval(
+      Rect.fromCenter(center: const Offset(36, 70), width: 22, height: 12),
+    );
   final Path rightLeaf = Path()
-    ..addOval(Rect.fromCenter(center: const Offset(64, 78), width: 22, height: 12));
+    ..addOval(
+      Rect.fromCenter(center: const Offset(64, 78), width: 22, height: 12),
+    );
 
   return ColoringTemplate(
     id: 'flower',
@@ -191,7 +216,11 @@ ColoringTemplate _flower() {
 
 ColoringTemplate _house() {
   final Path wall = _rect(28, 48, 44, 40);
-  final Path roof = _triangle(const Offset(22, 48), const Offset(78, 48), const Offset(50, 22));
+  final Path roof = _triangle(
+    const Offset(22, 48),
+    const Offset(78, 48),
+    const Offset(50, 22),
+  );
   final Path door = _rect(44, 68, 12, 20);
   final Path win1 = _rect(33, 54, 10, 10);
   final Path win2 = _rect(57, 54, 10, 10);

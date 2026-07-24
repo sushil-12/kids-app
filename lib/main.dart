@@ -52,6 +52,24 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
   ]);
 
+  // Edge-to-edge: let every screen's background paint behind the status bar
+  // and the bottom system inset instead of leaving opaque OS-drawn bars.
+  // Screens still use SafeArea to keep interactive content clear of both.
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+      systemNavigationBarDividerColor: Colors.transparent,
+      // Android draws a dark contrast scrim behind a transparent nav bar by
+      // default; disable it so the screen's own background shows through.
+      systemNavigationBarContrastEnforced: false,
+    ),
+  );
+
   runApp(
     ProviderScope(
       overrides: <Override>[

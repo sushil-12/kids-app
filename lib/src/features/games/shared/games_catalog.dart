@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_icons.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Age bands the games are grouped under on the hub (see CLAUDE.md §1).
@@ -15,14 +16,14 @@ class GameInfo {
     required this.route,
     required this.title,
     required this.color,
-    required this.icon,
+    required this.glyph,
     required this.band,
   });
 
   final String route;
   final String Function(AppLocalizations l10n) title;
   final Color color;
-  final IconData icon;
+  final ClayIconKind glyph;
   final GameBand band;
 }
 
@@ -40,49 +41,49 @@ const List<GameInfo> kGames = <GameInfo>[
     route: Routes.gameShapeSorter,
     title: _shapeSorter,
     color: AppColors.coral,
-    icon: Icons.category_rounded,
+    glyph: ClayIconKind.shapes,
     band: GameBand.junior,
   ),
   GameInfo(
     route: Routes.gameColorMatch,
     title: _colorMatch,
     color: AppColors.teal,
-    icon: Icons.palette_rounded,
+    glyph: ClayIconKind.palette,
     band: GameBand.junior,
   ),
   GameInfo(
     route: Routes.gameMemoryFlip,
     title: _memoryFlip,
     color: AppColors.purple,
-    icon: Icons.style_rounded,
+    glyph: ClayIconKind.cards,
     band: GameBand.junior,
   ),
   GameInfo(
     route: Routes.gameOddOneOut,
     title: _oddOneOut,
     color: AppColors.pink,
-    icon: Icons.search_rounded,
+    glyph: ClayIconKind.magnifier,
     band: GameBand.junior,
   ),
   GameInfo(
     route: Routes.gameLetterTrace,
     title: _letterTrace,
     color: AppColors.blue,
-    icon: Icons.gesture_rounded,
+    glyph: ClayIconKind.trace,
     band: GameBand.senior,
   ),
   GameInfo(
     route: Routes.gameCountTap,
     title: _countTap,
     color: AppColors.orange,
-    icon: Icons.filter_5_rounded,
+    glyph: ClayIconKind.apples,
     band: GameBand.senior,
   ),
   GameInfo(
     route: Routes.gamePattern,
     title: _pattern,
     color: AppColors.green,
-    icon: Icons.auto_awesome_motion_rounded,
+    glyph: ClayIconKind.pattern,
     band: GameBand.senior,
   ),
 ];

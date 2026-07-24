@@ -44,7 +44,8 @@ class ColoringTemplate {
     for (final dynamic r in regionsJson) {
       final Map<String, dynamic> m = r as Map<String, dynamic>;
       final String id = m['id'] as String;
-      regions.add(ColorRegion(id: id, path: parseSvgPathData(m['d'] as String)));
+      regions
+          .add(ColorRegion(id: id, path: parseSvgPathData(m['d'] as String)));
       final Object? bn = m['byNumber'];
       if (bn is num) byNumber[id] = bn.toInt();
     }

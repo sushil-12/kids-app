@@ -364,5 +364,5 @@ class LetterTraceViewModel extends Notifier<LetterTraceState> {
 
 final letterTraceProvider =
     NotifierProvider<LetterTraceViewModel, LetterTraceState>(
-      LetterTraceViewModel.new,
-    );
+  LetterTraceViewModel.new,
+);

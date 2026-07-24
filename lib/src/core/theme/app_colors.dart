@@ -18,9 +18,29 @@ abstract final class AppColors {
   static const Color orange = Color(0xFFFF9E42);
   static const Color grey = Color(0xFFEBE8ED);
 
+  /// Onboarding-flow accents (Figma file `oSqYkvClGfdzJ4YL2PeEuM`).
+  static const Color indigo = Color(0xFF414FE0);
+  static const Color crimson = Color(0xFFDF1A1D);
+  static const Color ink = Color(0xFF16182C);
+  static const Color slate = Color(0xFF6E6A7C);
+
+  /// [dark] at 55% alpha — bottom scrim over story illustrations so
+  /// subtitles stay readable on any art. Const so gradients can be const.
+  static const Color darkScrim = Color(0x8C332E40);
+
   /// The 12-swatch coloring palette, in display order.
   static const List<Color> crayonPalette = <Color>[
-    coral, orange, yellow, green, teal, blue,
-    purple, pink, dark, Color(0xFF99663F), Colors.white, grey,
+    coral,
+    orange,
+    yellow,
+    green,
+    teal,
+    blue,
+    purple,
+    pink,
+    dark,
+    Color(0xFF99663F),
+    Colors.white,
+    grey,
   ];
 }

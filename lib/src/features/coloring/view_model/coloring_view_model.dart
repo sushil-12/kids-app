@@ -144,7 +144,8 @@ class CanvasViewModel extends FamilyNotifier<CanvasState, String> {
     final ColorStroke? active = state.activeStroke;
     if (active == null) return;
     state = state.copyWith(
-      activeStroke: active.copyWith(points: <Offset>[...active.points, logicalPoint]),
+      activeStroke:
+          active.copyWith(points: <Offset>[...active.points, logicalPoint]),
     );
   }
 
@@ -183,9 +184,13 @@ class CanvasViewModel extends FamilyNotifier<CanvasState, String> {
 
   List<CanvasAction> _push(CanvasAction action) {
     final List<CanvasAction> next = <CanvasAction>[...state.history, action];
-    return next.length > _maxHistory ? next.sublist(next.length - _maxHistory) : next;
+    return next.length > _maxHistory
+        ? next.sublist(next.length - _maxHistory)
+        : next;
   }
 }
 
 final canvasViewModelProvider =
-    NotifierProvider.family<CanvasViewModel, CanvasState, String>(CanvasViewModel.new);
+    NotifierProvider.family<CanvasViewModel, CanvasState, String>(
+  CanvasViewModel.new,
+);

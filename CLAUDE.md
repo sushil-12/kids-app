@@ -186,6 +186,14 @@ flutter run                # run on device/simulator
 - **Tests:** unit view-model tests for Pattern, Odd-One-Out, Rewards, Streak,
   Profile, plus the adaptive policy + view-model under `test/features/...`
   (44 tests).
+- **Cinematic story player is illustration-first:** scenes/stories carry
+  optional backend `image`/`coverImage` URLs (`cached_network_image`, disk
+  cache, `core/widgets/remote_illustration.dart`); loaded art plays full-bleed
+  under the Ken Burns camera with a bottom scrim + hotspot rings, and the
+  upgraded procedural vector stage (parallax hills, sun glow, contact shadows,
+  vignette) is the always-works offline fallback. Sample wire JSON lives in
+  `features/learn/data/sample_cinematic_story.dart` + `backend_samples/`
+  (currently served TEMP in place of the backend fetch).
 
 ### In progress / pending (next work)
 - Adopt adaptive difficulty in the remaining five games (same `_difficulty()` +
@@ -229,9 +237,54 @@ flutter run                # run on device/simulator
 ## 9. Design reference
 
 - Figma (Phase 1 screens + prototype): file key `oytQpgeXu01S8pwmQiT7LA`.
+- Figma (onboarding flow — Splash, Welcome, 3-slide carousel, Profile Setup):
+  file key `oSqYkvClGfdzJ4YL2PeEuM`, page "Little_genius application". Source
+  of the `assets/images/onboarding/` illustrations and the "Little Genius"
+  in-app wordmark (`assets/logos/splash-logo.png`, `app-logo.png`) — the
+  formal app/store name stays **BrightMind Kids** (§1); "Little Genius
+  Islands" is the in-universe wordmark shown on the splash/welcome screens.
 - Color palette mirrored in `app_colors.dart`: coral `#FF7361`, teal `#2EBDB5`,
-  yellow `#FFCC40`, purple `#8C73F2`, cream `#FFF7EB`, dark `#332E40`.
+  yellow `#FFCC40`, purple `#8C73F2`, cream `#FFF7EB`, dark `#332E40`,
+  indigo `#414FE0`, crimson `#DF1A1D` (onboarding-flow accents).
 - Tone: big rounded tap targets, bold playful type, high contrast, portrait only.
+
+### Design language — "pastel clay" (use for ALL new screens)
+
+Established across the onboarding flow and now applied app-wide (home, hubs,
+games, learn, coloring, creative, stickers, settings, paywall, dialogs).
+Shared widgets live in `core/widgets/clay_decor.dart` (`ClayBackground`,
+`ClayCard`, `ClayTile`, `ClayButton`, `ClayIconButton`, `ClayHeader`,
+`pastelOf`, `clayTitle`/`clayBody` text helpers);
+`features/onboarding/view/onboarding_decor.dart` just re-exports it:
+
+- **No plain white screens.** Every screen sits on `ClayBackground` (or
+  the same recipe): a vertical pastel gradient of a single palette tint fading
+  into `AppColors.cream`, with soft scattered decor (4-point sparkles, low-alpha
+  bubbles, white cloud blobs) painted behind a `RepaintBoundary`.
+- **Pastels are derived, never hardcoded:** `pastelOf(tint, strength)` =
+  `Color.alphaBlend(tint.withValues(alpha: strength), Colors.white)`. All hues
+  come from `AppColors`; no new hex values.
+- **Screen tints so far:** Splash = teal, Welcome = yellow, carousel slides =
+  teal → purple → coral (background `Color.lerp`s continuously with the
+  `PageController` offset), Profile Setup = purple, Home = blue, Games Hub =
+  purple (each game tints by its `GameInfo.color` via `GameScaffold.accent`),
+  Learn Hub = green (Story = coral, ABC = teal, Poems = purple), Coloring =
+  coral (By-Number = teal), Creative = pinkDeep, Sticker Room = yellow,
+  Settings = indigo, Paywall = crimson. The cinematic story player stays dark/
+  immersive on purpose. Pick one palette tint per new screen and keep
+  neighbors in a flow visually distinct.
+- **Claymorphism cards:** hero art and content panels go in `ClayCard` —
+  radius 28, pastel fill, 2.5px white border, soft tinted drop shadow
+  (`offset (0, 10)`, blur 18). Form sections sit on white rounded-24 cards
+  with a soft tinted shadow (see `_SectionCard` in `profile_setup_screen.dart`).
+- **CTAs:** `ClayButton` — full-width, radius 24, solid palette fill, hard
+  darker bottom-edge shadow + soft glow, white Nunito w800 label, optional
+  trailing icon. Don't hand-roll new primary buttons.
+- **Type scale:** Poppins w600 28–30 titles (`AppColors.ink`, accent line in
+  `crimson`), Lexend Deca 16 body (`AppColors.slate`), Nunito w800 buttons.
+- **Motion:** playful `Curves.easeOutBack` transitions, progress pills that
+  stretch and re-tint to the active theme color, gentle looping bounces.
+  Keep animated surfaces in `RepaintBoundary`.
 
 ---
 

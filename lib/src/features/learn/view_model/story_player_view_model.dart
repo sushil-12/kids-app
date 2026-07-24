@@ -52,13 +52,15 @@ class StoryPlayerViewModel
     extends AutoDisposeFamilyNotifier<StoryPlayerState, CinematicStory> {
   CinematicStory get story => arg;
 
-  StoryScene? get currentScene =>
-      state.sceneIndex < story.scenes.length ? story.scenes[state.sceneIndex] : null;
+  StoryScene? get currentScene => state.sceneIndex < story.scenes.length
+      ? story.scenes[state.sceneIndex]
+      : null;
 
   @override
   StoryPlayerState build(CinematicStory arg) => StoryPlayerState(
         sceneIndex: 0,
-        phase: arg.scenes.isEmpty ? PlayerPhase.finished : PlayerPhase.narrating,
+        phase:
+            arg.scenes.isEmpty ? PlayerPhase.finished : PlayerPhase.narrating,
       );
 
   /// Narration (TTS) finished and the scene's minDuration elapsed. Either the
@@ -117,7 +119,8 @@ class StoryPlayerViewModel
   void replay() {
     state = StoryPlayerState(
       sceneIndex: 0,
-      phase: story.scenes.isEmpty ? PlayerPhase.finished : PlayerPhase.narrating,
+      phase:
+          story.scenes.isEmpty ? PlayerPhase.finished : PlayerPhase.narrating,
     );
   }
 

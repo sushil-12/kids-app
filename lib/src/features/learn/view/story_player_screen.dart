@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/services/audio_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/remote_illustration.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../rewards/view_model/rewards_view_model.dart';
 import '../data/cinematic_story.dart';
@@ -27,12 +29,25 @@ class StoryPlayerScreen extends ConsumerWidget {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final AsyncValue<CinematicStory> async = ref.watch(cinematicStoryProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.dark,
-      body: async.when(
-        loading: () => _LoadingView(message: l10n.contentLoading),
-        error: (_, __) => _LoadingView(message: l10n.contentLoading),
-        data: (CinematicStory story) => _PlayerView(story: story),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // This screen's background is dark, unlike the rest of the app — flip
+      // the status/nav bar icons light so they stay visible over it.
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarContrastEnforced: false,
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.dark,
+        body: async.when(
+          loading: () => _LoadingView(message: l10n.contentLoading),
+          error: (_, __) => _LoadingView(message: l10n.contentLoading),
+          data: (CinematicStory story) => _PlayerView(story: story),
+        ),
       ),
     );
   }
@@ -112,7 +127,25 @@ class _PlayerViewState extends ConsumerState<_PlayerView>
       )
       ..reset()
       ..forward();
+    _precacheNextIllustration(scene);
     unawaited(_narrate(scene));
+  }
+
+  /// Warms the disk/memory cache for the next scene's illustration so it is
+  /// on screen from the first frame instead of popping in mid-scene. Failures
+  /// are ignored — the stage falls back to the vector look.
+  void _precacheNextIllustration(StoryScene scene) {
+    final int index = _story.scenes.indexOf(scene);
+    if (index < 0 || index + 1 >= _story.scenes.length) return;
+    final String? url = _story.scenes[index + 1].image;
+    if (url == null) return;
+    unawaited(
+      precacheImage(
+        illustrationProvider(url),
+        context,
+        onError: (Object error, StackTrace? stackTrace) {},
+      ),
+    );
   }
 
   Future<void> _narrate(StoryScene scene) async {
@@ -176,8 +209,7 @@ class _PlayerViewState extends ConsumerState<_PlayerView>
       }
       if (next.phase == PlayerPhase.interacting &&
           prev?.phase != PlayerPhase.interacting) {
-        final String? hint =
-            _story.scenes[next.sceneIndex].interaction?.hint;
+        final String? hint = _story.scenes[next.sceneIndex].interaction?.hint;
         if (hint != null) {
           unawaited(_audio.speak(hint, languageCode: _story.lang));
         }
@@ -215,7 +247,19 @@ class _PlayerViewState extends ConsumerState<_PlayerView>
               return Transform.translate(offset: Offset(dx, 0), child: child);
             },
             child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
+              duration: const Duration(milliseconds: 800),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              // Gentle cross-fade with a settle-down scale — the storybook
+              // "page turn" feel instead of a hard swap.
+              transitionBuilder: (Widget child, Animation<double> animation) =>
+                  FadeTransition(
+                opacity: animation,
+                child: ScaleTransition(
+                  scale: Tween<double>(begin: 1.03, end: 1).animate(animation),
+                  child: child,
+                ),
+              ),
               child: _SceneStage(
                 key: ValueKey<int>(state.sceneIndex),
                 scene: scene,
@@ -286,7 +330,16 @@ class _PlayerViewState extends ConsumerState<_PlayerView>
 
 // ── The stage ────────────────────────────────────────────────────────────────
 
-class _SceneStage extends StatelessWidget {
+/// The stage renders in one of two modes:
+///
+/// - **Illustrated** — when the scene carries a backend illustration URL and
+///   it has loaded (from cache or network), the art plays full-bleed under
+///   the existing camera move (Ken Burns), with a bottom scrim for subtitle
+///   legibility. The painted props/characters hide (the art depicts them);
+///   only the interaction hotspots stay on top.
+/// - **Vector fallback** — no URL, still loading, or offline: the procedural
+///   painter stage with animated emoji characters, so the story always plays.
+class _SceneStage extends StatefulWidget {
   const _SceneStage({
     super.key,
     required this.scene,
@@ -307,14 +360,46 @@ class _SceneStage extends StatelessWidget {
   final void Function(String targetId, String zoneId) onDropElement;
 
   @override
+  State<_SceneStage> createState() => _SceneStageState();
+}
+
+class _SceneStageState extends State<_SceneStage> {
+  IllustrationPreloader? _preloader;
+
+  /// True once the illustration has a decoded frame — flips the layer stack
+  /// from vector to illustrated. Never flips on error (silent fallback).
+  bool _imageReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final String? url = widget.scene.image;
+    if (url != null) {
+      _preloader = IllustrationPreloader(
+        url: url,
+        onReady: () {
+          if (mounted) setState(() => _imageReady = true);
+        },
+      )..start();
+    }
+  }
+
+  @override
+  void dispose() {
+    _preloader?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final StoryScene scene = widget.scene;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final Size size = Size(constraints.maxWidth, constraints.maxHeight);
         return AnimatedBuilder(
-          animation: camera,
+          animation: widget.camera,
           builder: (BuildContext context, Widget? child) {
-            final double t = Curves.easeInOut.transform(camera.value);
+            final double t = Curves.easeInOut.transform(widget.camera.value);
             final (double scale, Offset offset) = switch (scene.camera) {
               CameraEffect.none => (1.0, Offset.zero),
               CameraEffect.zoomIn => (1.0 + 0.12 * t, Offset.zero),
@@ -328,27 +413,56 @@ class _SceneStage extends StatelessWidget {
                   Offset(-size.width * 0.05 * (2 * t - 1), 0),
                 ),
             };
+            // Illustrated scenes get a small base zoom so Ken Burns pans
+            // never reveal the image edge.
+            final double base = _imageReady ? 1.08 : 1.0;
             return Transform.translate(
               offset: offset,
-              child: Transform.scale(scale: scale, child: child),
+              child: Transform.scale(scale: scale * base, child: child),
             );
           },
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             // A tap anywhere off-target during an interaction still answers
             // with a gentle wobble, never a fail state.
-            onTap: () => onTapElement(''),
+            onTap: () => widget.onTapElement(''),
             child: Stack(
               fit: StackFit.expand,
               children: <Widget>[
                 RepaintBoundary(
                   child: CustomPaint(painter: ScenePainter(scene: scene)),
                 ),
+                // Full-bleed illustration; renders nothing until loaded, then
+                // fades in over the vector stage.
+                if (scene.image != null)
+                  RepaintBoundary(
+                    child: RemoteIllustration(url: scene.image!),
+                  ),
+                if (scene.image != null)
+                  IgnorePointer(
+                    child: AnimatedOpacity(
+                      opacity: _imageReady ? 1 : 0,
+                      duration: const Duration(milliseconds: 500),
+                      child: const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: <double>[0.55, 1],
+                            colors: <Color>[
+                              Colors.transparent,
+                              AppColors.darkScrim,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 RepaintBoundary(
                   child: CustomPaint(
                     painter: SceneParticlesPainter(
                       particles: scene.particles,
-                      time: ambient,
+                      time: widget.ambient,
                     ),
                   ),
                 ),
@@ -358,9 +472,9 @@ class _SceneStage extends StatelessWidget {
                     x: prop.x,
                     y: prop.y,
                     extent: size.shortestSide * 0.22 * prop.scale,
-                    interaction: interaction,
-                    onTap: onTapElement,
-                    onDrop: onDropElement,
+                    interaction: widget.interaction,
+                    onTap: widget.onTapElement,
+                    onDrop: widget.onDropElement,
                     child: const SizedBox.expand(),
                   ),
                 for (final SceneCharacter character in scene.characters)
@@ -369,14 +483,19 @@ class _SceneStage extends StatelessWidget {
                     x: character.x,
                     y: character.y,
                     extent: size.shortestSide * 0.2 * character.scale,
-                    interaction: interaction,
-                    onTap: onTapElement,
-                    onDrop: onDropElement,
-                    child: _AnimatedCharacter(
-                      character: character,
-                      ambient: ambient,
-                      fontSize: size.shortestSide * 0.14 * character.scale,
-                    ),
+                    interaction: widget.interaction,
+                    onTap: widget.onTapElement,
+                    onDrop: widget.onDropElement,
+                    // Over an illustration the art depicts the character, so
+                    // the emoji hides and only the hotspot ring remains.
+                    child: _imageReady
+                        ? const SizedBox.expand()
+                        : _AnimatedCharacter(
+                            character: character,
+                            ambient: widget.ambient,
+                            fontSize:
+                                size.shortestSide * 0.17 * character.scale,
+                          ),
                   ),
               ],
             ),
@@ -490,51 +609,77 @@ class _AnimatedCharacter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: ambient,
-        builder: (BuildContext context, Widget? child) {
-          final double t = ambient.value * 2 * math.pi;
-          final (Offset offset, double angle, double scale) =
-              switch (character.animation) {
-            CharacterAnimation.idle => (
-                Offset(0, math.sin(t) * 3),
-                0.0,
-                1.0,
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          // Grounded contact shadow: stays put while the character hops or
+          // flies above it, which is what sells the depth.
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              width: fontSize * 0.9,
+              height: fontSize * 0.18,
+              decoration: BoxDecoration(
+                color: AppColors.dark.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.all(
+                  Radius.elliptical(fontSize * 0.45, fontSize * 0.09),
+                ),
               ),
-            CharacterAnimation.fly => (
-                Offset(math.sin(t * 0.5) * 6, math.sin(t * 2) * 8),
-                math.sin(t) * 0.06,
-                1.0,
-              ),
-            CharacterAnimation.hop => (
-                Offset(0, -math.sin(t * 2).abs() * 12),
-                0.0,
-                1.0,
-              ),
-            CharacterAnimation.walk => (
-                Offset(math.sin(t) * 8, 0),
-                math.sin(t * 2) * 0.05,
-                1.0,
-              ),
-            CharacterAnimation.bounce => (
-                Offset.zero,
-                0.0,
-                1.0 + math.sin(t * 2).abs() * 0.08,
-              ),
-          };
-          return Transform.translate(
-            offset: offset,
-            child: Transform.rotate(
-              angle: angle,
-              child: Transform.scale(scale: scale, child: child),
             ),
-          );
-        },
-        child: Center(
-          child: Text(
-            character.kind.emoji,
-            style: TextStyle(fontSize: fontSize),
           ),
+          _motionRig(),
+        ],
+      ),
+    );
+  }
+
+  /// The scripted idle/fly/hop/walk/bounce transform rig; moves the emoji
+  /// only, so the contact shadow stays grounded.
+  Widget _motionRig() {
+    return AnimatedBuilder(
+      animation: ambient,
+      builder: (BuildContext context, Widget? child) {
+        final double t = ambient.value * 2 * math.pi;
+        final (Offset offset, double angle, double scale) =
+            switch (character.animation) {
+          CharacterAnimation.idle => (
+              Offset(0, math.sin(t) * 3),
+              0.0,
+              1.0,
+            ),
+          CharacterAnimation.fly => (
+              Offset(math.sin(t * 0.5) * 6, math.sin(t * 2) * 8),
+              math.sin(t) * 0.06,
+              1.0,
+            ),
+          CharacterAnimation.hop => (
+              Offset(0, -math.sin(t * 2).abs() * 12),
+              0.0,
+              1.0,
+            ),
+          CharacterAnimation.walk => (
+              Offset(math.sin(t) * 8, 0),
+              math.sin(t * 2) * 0.05,
+              1.0,
+            ),
+          CharacterAnimation.bounce => (
+              Offset.zero,
+              0.0,
+              1.0 + math.sin(t * 2).abs() * 0.08,
+            ),
+        };
+        return Transform.translate(
+          offset: offset,
+          child: Transform.rotate(
+            angle: angle,
+            child: Transform.scale(scale: scale, child: child),
+          ),
+        );
+      },
+      child: Center(
+        child: Text(
+          character.kind.emoji,
+          style: TextStyle(fontSize: fontSize),
         ),
       ),
     );
@@ -603,28 +748,42 @@ class _SubtitleBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Storybook caption in the clay design language: a soft white card for
+    // narration, the yellow "do this" card for hints. Sits over the stage's
+    // bottom scrim, so it reads on any illustration.
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: isHint
-            ? AppColors.yellow.withValues(alpha: 0.95)
-            : AppColors.dark.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(20),
+            ? AppColors.yellow.withValues(alpha: 0.97)
+            : Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.7),
+          width: 2,
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.dark.withValues(alpha: 0.28),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           if (isHint) ...<Widget>[
-            const Text('👆', style: TextStyle(fontSize: 22)),
+            const Text('👆', style: TextStyle(fontSize: 24)),
             const SizedBox(width: 10),
           ],
           Flexible(
             child: Text(
               text,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: isHint ? AppColors.dark : Colors.white,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppColors.ink,
                     fontWeight: FontWeight.w600,
                     height: 1.35,
                   ),
@@ -669,7 +828,29 @@ class _EndCard extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text(story.coverEmoji, style: const TextStyle(fontSize: 80)),
+                // Cover art when the backend provides it; the emoji sits
+                // underneath and shows until (or unless) the image loads.
+                SizedBox(
+                  width: 160,
+                  height: 160,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      Center(
+                        child: Text(
+                          story.coverEmoji,
+                          style: const TextStyle(fontSize: 80),
+                        ),
+                      ),
+                      if (story.coverImage != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(28),
+                          child: RemoteIllustration(url: story.coverImage!),
+                        ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Text(
                   l10n.storyTheEnd,
@@ -748,8 +929,9 @@ class _EndCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     FilledButton(
-                      style:
-                          FilledButton.styleFrom(backgroundColor: AppColors.yellow),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.yellow,
+                      ),
                       onPressed: onDone,
                       child: Text(
                         l10n.storyAllDone,

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/audio_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
 
 /// Shared chrome for every brain game: a back button, a row of progress stars,
 /// and a bright instruction banner. The game's interactive surface is [child].
@@ -65,52 +67,83 @@ class _GameScaffoldState extends ConsumerState<GameScaffold> {
     final Color accent = widget.accent;
     final Widget child = widget.child;
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Row(
-                children: <Widget>[
-                  IconButton.filledTonal(
-                    onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back_rounded),
-                  ),
-                  Expanded(child: _Stars(progress: progress, total: total, color: accent)),
-                  const SizedBox(width: 48),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                decoration: BoxDecoration(
-                  color: accent,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Text(
-                  instruction,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          // Pastel-clay backdrop tinted per game (design language, CLAUDE.md §9).
+          ClayBackground(tint: accent),
+          SafeArea(
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  child: Row(
+                    children: <Widget>[
+                      ClayIconButton(
+                        icon: Icons.arrow_back_rounded,
+                        tint: accent,
+                        onTap: () => context.pop(),
                       ),
+                      Expanded(
+                        child: _Stars(
+                          progress: progress,
+                          total: total,
+                          color: accent,
+                        ),
+                      ),
+                      const SizedBox(width: 48),
+                    ],
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accent,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white, width: 2.5),
+                      boxShadow: <BoxShadow>[
+                        BoxShadow(
+                          color: accent.withValues(alpha: 0.3),
+                          blurRadius: 18,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      instruction,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(child: child),
+                const SizedBox(height: 12),
+              ],
             ),
-            Expanded(child: child),
-            const SizedBox(height: 12),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _Stars extends StatelessWidget {
-  const _Stars({required this.progress, required this.total, required this.color});
+  const _Stars({
+    required this.progress,
+    required this.total,
+    required this.color,
+  });
 
   final int progress;
   final int total;
@@ -130,7 +163,9 @@ class _Stars extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 3),
               child: Icon(
                 i < progress ? Icons.star_rounded : Icons.star_outline_rounded,
-                color: i < progress ? AppColors.yellow : color.withValues(alpha: 0.3),
+                color: i < progress
+                    ? AppColors.yellow
+                    : color.withValues(alpha: 0.3),
                 size: 32,
               ),
             ),

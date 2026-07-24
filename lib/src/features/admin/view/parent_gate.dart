@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Shows the parent gate (a simple math question) and resolves to `true` only
@@ -67,17 +68,21 @@ class _ParentGateDialogState extends State<_ParentGateDialog> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final ThemeData theme = Theme.of(context);
+    // Clay dialog: white panel with an indigo tinted shadow (grown-up accent).
     return AlertDialog(
-      backgroundColor: AppColors.cream,
-      title: Text(l10n.parentGateTitle),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+        side: const BorderSide(color: Colors.white, width: 2.5),
+      ),
+      title: Text(l10n.parentGateTitle, style: clayTitle(fontSize: 20)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             l10n.parentGateInstruction(_a, _b),
-            style: theme.textTheme.titleMedium,
+            style: clayBody(fontSize: 15, color: AppColors.ink),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -89,7 +94,26 @@ class _ParentGateDialogState extends State<_ParentGateDialog> {
             ],
             decoration: InputDecoration(
               errorText: _wrong ? l10n.parentGateWrong : null,
-              border: const OutlineInputBorder(),
+              filled: true,
+              fillColor: pastelOf(AppColors.indigo, 0.06),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: AppColors.indigo.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: AppColors.indigo.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.indigo, width: 2),
+              ),
             ),
             onSubmitted: (_) => _submit(),
           ),
@@ -98,12 +122,14 @@ class _ParentGateDialogState extends State<_ParentGateDialog> {
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l10n.cancel),
+          child: Text(
+            l10n.cancel,
+            style: clayBody(fontSize: 14),
+          ),
         ),
-        FilledButton(
-          onPressed: _submit,
-          style: FilledButton.styleFrom(backgroundColor: AppColors.teal),
-          child: Text(l10n.parentGateContinue),
+        ClayButton(
+          label: l10n.parentGateContinue,
+          onTap: _submit,
         ),
       ],
     );

@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
+import '../../../core/widgets/clay_icons.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/creative_guide.dart';
 
@@ -22,55 +24,56 @@ class CreativeHubScreen extends StatelessWidget {
         .toList(growable: false);
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: <Widget>[
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                child: Row(
-                  children: <Widget>[
-                    IconButton.filledTonal(
-                      onPressed: () => context.pop(),
-                      icon: const Icon(Icons.arrow_back_rounded),
-                    ),
-                    Expanded(
-                      child: Text(
-                        l10n.creativeHubTitle,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall,
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          const ClayBackground(tint: AppColors.pinkDeep),
+          SafeArea(
+            child: CustomScrollView(
+              slivers: <Widget>[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    child: ClayHeader(
+                      title: l10n.creativeHubTitle,
+                      tint: AppColors.pinkDeep,
+                      trailing: ClayIconButton(
+                        icon: Icons.collections_rounded,
+                        tint: AppColors.pinkDeep,
+                        onTap: () => context.push(Routes.creativeArt),
                       ),
                     ),
-                    IconButton.filledTonal(
-                      onPressed: () => context.push(Routes.creativeArt),
-                      icon: const Icon(Icons.collections_rounded),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate(<Widget>[
-                  _FreeDrawCard(
-                    label: l10n.creativeFreeDraw,
-                    onTap: () => _open(context, kFreeDrawId),
                   ),
-                  const SizedBox(height: 24),
-                  _SectionTitle(l10n.creativeShapes),
-                  const SizedBox(height: 12),
-                  _GuideGrid(guides: shapes, onTap: (String id) => _open(context, id)),
-                  const SizedBox(height: 24),
-                  _SectionTitle(l10n.creativeFruits),
-                  const SizedBox(height: 12),
-                  _GuideGrid(guides: fruits, onTap: (String id) => _open(context, id)),
-                ]),
-              ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(<Widget>[
+                      _FreeDrawCard(
+                        label: l10n.creativeFreeDraw,
+                        onTap: () => _open(context, kFreeDrawId),
+                      ),
+                      const SizedBox(height: 24),
+                      _SectionTitle(l10n.creativeShapes),
+                      const SizedBox(height: 12),
+                      _GuideGrid(
+                        guides: shapes,
+                        onTap: (String id) => _open(context, id),
+                      ),
+                      const SizedBox(height: 24),
+                      _SectionTitle(l10n.creativeFruits),
+                      const SizedBox(height: 12),
+                      _GuideGrid(
+                        guides: fruits,
+                        onTap: (String id) => _open(context, id),
+                      ),
+                    ]),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -85,7 +88,7 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: Theme.of(context).textTheme.titleLarge);
+    return Text(text, style: clayTitle(fontSize: 18));
   }
 }
 
@@ -97,35 +100,23 @@ class _FreeDrawCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.pink,
-      borderRadius: BorderRadius.circular(28),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(28),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: <Widget>[
-              const CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.white,
-                child: Icon(Icons.edit_rounded, size: 32, color: AppColors.pink),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  label,
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(color: Colors.white),
-                ),
-              ),
-              const Icon(Icons.chevron_right_rounded, color: Colors.white),
-            ],
+    return ClayTile(
+      color: AppColors.pinkDeep,
+      padding: const EdgeInsets.all(20),
+      onTap: onTap,
+      child: Row(
+        children: <Widget>[
+          const ClayIcon(
+            kind: ClayIconKind.pencil,
+            tint: AppColors.pinkDeep,
+            size: 60,
           ),
-        ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(label, style: clayTitle(fontSize: 19)),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.pinkDeep),
+        ],
       ),
     );
   }
@@ -161,15 +152,13 @@ class _GuideTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: onTap,
-        child: Center(
-          child: Text(guide.emoji, style: const TextStyle(fontSize: 44)),
-        ),
+    return ClayTile(
+      color: AppColors.pinkDeep,
+      fill: Colors.white,
+      padding: EdgeInsets.zero,
+      onTap: onTap,
+      child: Center(
+        child: Text(guide.emoji, style: const TextStyle(fontSize: 44)),
       ),
     );
   }

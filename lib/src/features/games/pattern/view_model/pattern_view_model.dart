@@ -104,8 +104,7 @@ class PatternViewModel extends Notifier<PatternState> {
     final List<PatternElement> sequence = <PatternElement>[
       for (int i = 0; i < PatternState.visibleCount; i++) unit[i % unit.length],
     ];
-    final PatternElement answer =
-        unit[PatternState.visibleCount % unit.length];
+    final PatternElement answer = unit[PatternState.visibleCount % unit.length];
 
     final List<PatternElement> options = _buildOptions(answer, base);
     return PatternState(

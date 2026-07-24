@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../profile/data/buddy.dart';
 import '../../profile/view_model/profile_view_model.dart';
@@ -29,9 +31,13 @@ Future<void> showGameCelebration(
     barrierDismissible: false,
     builder: (BuildContext ctx) {
       final AppLocalizations l10n = AppLocalizations.of(ctx);
+      // Clay dialog: pastel purple panel, white border, soft tinted shadow.
       return AlertDialog(
-        backgroundColor: AppColors.purple,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        backgroundColor: pastelOf(AppColors.purple, 0.25),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+          side: const BorderSide(color: Colors.white, width: 2.5),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -41,14 +47,16 @@ Future<void> showGameCelebration(
             const SizedBox(height: 8),
             Text(
               l10n.gameWinTitle,
-              style: Theme.of(ctx).textTheme.headlineMedium?.copyWith(color: Colors.white),
+              textAlign: TextAlign.center,
+              style: clayTitle(fontSize: 24),
             ),
             const SizedBox(height: 4),
             Text(
               stickerEmoji == null || isNewSticker
                   ? l10n.newStickerEarned
                   : l10n.allStickersEarned,
-              style: Theme.of(ctx).textTheme.titleMedium?.copyWith(color: AppColors.cream),
+              textAlign: TextAlign.center,
+              style: clayBody(),
             ),
           ],
         ),
@@ -61,19 +69,19 @@ Future<void> showGameCelebration(
             },
             child: Text(
               l10n.backToGames,
-              style: const TextStyle(color: AppColors.cream),
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w800,
+                color: AppColors.slate,
+              ),
             ),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.yellow),
-            onPressed: () {
+          ClayButton(
+            label: l10n.playAgain,
+            color: AppColors.purple,
+            onTap: () {
               Navigator.of(ctx).pop();
               onPlayAgain();
             },
-            child: Text(
-              l10n.playAgain,
-              style: const TextStyle(color: AppColors.dark),
-            ),
           ),
         ],
       );
@@ -134,8 +142,15 @@ class _ClappingBuddyState extends ConsumerState<_ClappingBuddy>
                   height: 64,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.25),
+                    color: Colors.white,
                     border: Border.all(color: Colors.white, width: 2.5),
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(
+                        color: AppColors.purple.withValues(alpha: 0.25),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
                   padding: const EdgeInsets.all(3),
                   child: ClipOval(

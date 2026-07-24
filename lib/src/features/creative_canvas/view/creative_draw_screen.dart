@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/clay_decor.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../coloring/data/coloring_template.dart';
 import '../../rewards/view_model/rewards_view_model.dart';
@@ -52,43 +54,54 @@ class _CreativeDrawScreenState extends ConsumerState<CreativeDrawScreen> {
         ref.read(creativeCanvasViewModelProvider(id).notifier);
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            _TopBar(title: _title(l10n, state.guide)),
-            Expanded(
-              child: _Canvas(
-                state: state,
-                vm: vm,
-                tick: _tick,
-                captureKey: _captureKey,
-              ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          // Kept subtle so the child's color choices stay true on the canvas.
+          const ClayBackground(tint: AppColors.pinkDeep),
+          SafeArea(
+            child: Column(
+              children: <Widget>[
+                _TopBar(title: _title(l10n, state.guide)),
+                Expanded(
+                  child: _Canvas(
+                    state: state,
+                    vm: vm,
+                    tick: _tick,
+                    captureKey: _captureKey,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    state.mode == CreativeMode.freeDraw
+                        ? l10n.pickAColor
+                        : l10n.creativeTrace,
+                    style: clayBody(fontSize: 13),
+                  ),
+                ),
+                _ToolBar(state: state, vm: vm),
+                const SizedBox(height: 8),
+                _BrushSizePicker(
+                  selected: state.brush,
+                  onSelect: vm.selectBrush,
+                ),
+                const SizedBox(height: 8),
+                _Palette(
+                  selected: state.selectedColor,
+                  onSelect: vm.selectColor,
+                ),
+                const SizedBox(height: 8),
+                _DoneButton(
+                  label: l10n.doneButton,
+                  enabled: state.hasDrawn,
+                  onDone: () => _finish(context, state, vm),
+                ),
+                const SizedBox(height: 10),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                state.mode == CreativeMode.freeDraw
-                    ? l10n.pickAColor
-                    : l10n.creativeTrace,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: AppColors.dark.withValues(alpha: 0.6),
-                    ),
-              ),
-            ),
-            _ToolBar(state: state, vm: vm),
-            const SizedBox(height: 8),
-            _BrushSizePicker(selected: state.brush, onSelect: vm.selectBrush),
-            const SizedBox(height: 8),
-            _Palette(selected: state.selectedColor, onSelect: vm.selectColor),
-            const SizedBox(height: 8),
-            _DoneButton(
-              label: l10n.doneButton,
-              enabled: state.hasDrawn,
-              onDone: () => _finish(context, state, vm),
-            ),
-            const SizedBox(height: 10),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -148,9 +161,13 @@ class _CreativeDrawScreenState extends ConsumerState<CreativeDrawScreen> {
       context: context,
       builder: (BuildContext ctx) {
         final AppLocalizations l10n = AppLocalizations.of(ctx);
+        // Clay dialog, matching the shared game celebration styling.
         return AlertDialog(
-          backgroundColor: AppColors.purple,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          backgroundColor: pastelOf(AppColors.purple, 0.25),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+            side: const BorderSide(color: Colors.white, width: 2.5),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -158,18 +175,14 @@ class _CreativeDrawScreenState extends ConsumerState<CreativeDrawScreen> {
               const SizedBox(height: 8),
               Text(
                 l10n.celebrationTitle,
-                style: Theme.of(ctx)
-                    .textTheme
-                    .headlineMedium
-                    ?.copyWith(color: Colors.white),
+                textAlign: TextAlign.center,
+                style: clayTitle(fontSize: 24),
               ),
               const SizedBox(height: 4),
               Text(
                 award.isNew ? l10n.newStickerEarned : l10n.allStickersEarned,
-                style: Theme.of(ctx)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(color: AppColors.cream),
+                textAlign: TextAlign.center,
+                style: clayBody(),
               ),
             ],
           ),
@@ -182,19 +195,19 @@ class _CreativeDrawScreenState extends ConsumerState<CreativeDrawScreen> {
               },
               child: Text(
                 l10n.creativeMyArt,
-                style: const TextStyle(color: AppColors.cream),
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.slate,
+                ),
               ),
             ),
-            FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: AppColors.yellow),
-              onPressed: () {
+            ClayButton(
+              label: l10n.colorAgain,
+              color: AppColors.purple,
+              onTap: () {
                 vm.clear();
                 Navigator.of(ctx).pop();
               },
-              child: Text(
-                l10n.colorAgain,
-                style: const TextStyle(color: AppColors.dark),
-              ),
             ),
           ],
         );
@@ -229,15 +242,16 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       child: Row(
         children: <Widget>[
-          IconButton.filledTonal(
-            onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back_rounded),
+          ClayIconButton(
+            icon: Icons.arrow_back_rounded,
+            tint: AppColors.pinkDeep,
+            onTap: () => context.pop(),
           ),
           Expanded(
             child: Text(
               title,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: clayTitle(fontSize: 20),
             ),
           ),
           const SizedBox(width: 48),

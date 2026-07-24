@@ -40,6 +40,11 @@ kotlin {
     }
 }
 
+dependencies {
+    // WindowCompat, used in MainActivity to force the gesture nav bar transparent.
+    implementation("androidx.core:core-ktx:1.13.1")
+}
+
 flutter {
     source = "../.."
 }

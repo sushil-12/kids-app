@@ -109,14 +109,20 @@ class ShapePainter extends CustomPainter {
     final double h = box.height;
     final Path path = Path()..moveTo(box.left + w / 2, box.bottom);
     path.cubicTo(
-      box.left - w * 0.1, box.top + h * 0.45,
-      box.left + w * 0.3, box.top - h * 0.05,
-      box.left + w / 2, box.top + h * 0.28,
+      box.left - w * 0.1,
+      box.top + h * 0.45,
+      box.left + w * 0.3,
+      box.top - h * 0.05,
+      box.left + w / 2,
+      box.top + h * 0.28,
     );
     path.cubicTo(
-      box.left + w * 0.7, box.top - h * 0.05,
-      box.right + w * 0.1, box.top + h * 0.45,
-      box.left + w / 2, box.bottom,
+      box.left + w * 0.7,
+      box.top - h * 0.05,
+      box.right + w * 0.1,
+      box.top + h * 0.45,
+      box.left + w / 2,
+      box.bottom,
     );
     return path..close();
   }

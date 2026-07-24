@@ -9,6 +9,13 @@ import 'package:flutter/foundation.dart';
 // values mirror kids-app-backend/src/services/cinematic.schema.ts — keep both
 // sides in sync. Parsing is lenient: an unknown wire value degrades to a safe
 // default instead of crashing an older app on newer vocabulary.
+//
+// Scenes may additionally carry an optional full-bleed illustration URL
+// (`image`, plus `coverImage` on the story). When present and reachable the
+// player shows the illustration (Vooks-style Ken Burns presentation); when
+// absent or offline it falls back to the vector stage, so the enums above
+// remain the guaranteed-playable baseline. The backend schema needs the same
+// two optional string fields.
 // ---------------------------------------------------------------------------
 
 enum SceneBackground {
@@ -283,10 +290,15 @@ class StoryScene {
     this.characters = const <SceneCharacter>[],
     this.particles = const <ParticleKind>[],
     this.interaction,
+    this.image,
   });
 
   final int id;
   final String title;
+
+  /// Optional full-bleed illustration URL for the scene. Null (or a URL that
+  /// fails to load) means the player renders the vector stage instead.
+  final String? image;
 
   /// Minimum seconds on screen (narration may hold the scene longer).
   final double minDuration;
@@ -311,6 +323,7 @@ class StoryScene {
         'characters': characters.map((SceneCharacter c) => c.toJson()).toList(),
         'particles': particles.map((ParticleKind p) => p.wire).toList(),
         'interaction': interaction?.toJson(),
+        'image': image,
       };
 
   factory StoryScene.fromJson(Map<String, dynamic> j) {
@@ -336,9 +349,9 @@ class StoryScene {
           .map((dynamic p) => ParticleKind.parse(p as String?))
           .whereType<ParticleKind>()
           .toList(),
-      interaction: interaction == null
-          ? null
-          : SceneInteraction.fromJson(interaction),
+      interaction:
+          interaction == null ? null : SceneInteraction.fromJson(interaction),
+      image: j['image'] as String?,
     );
   }
 }
@@ -382,11 +395,16 @@ class CinematicStory {
     this.category = 'Moral Stories',
     this.music = MusicTrack.calm,
     this.reward = const StoryReward(),
+    this.coverImage,
   });
 
   final String id;
   final String slug;
   final String title;
+
+  /// Optional cover illustration URL (end card / gallery); falls back to
+  /// [coverEmoji] when null or unreachable.
+  final String? coverImage;
 
   /// "en" | "hi" — the language every text field is written in.
   final String lang;
@@ -406,6 +424,7 @@ class CinematicStory {
         'ageBand': ageBand,
         'category': category,
         'coverEmoji': coverEmoji,
+        'coverImage': coverImage,
         'music': music.wire,
         'moral': moral,
         'reward': reward.toJson(),
@@ -420,6 +439,7 @@ class CinematicStory {
         ageBand: j['ageBand'] as String? ?? 'junior',
         category: j['category'] as String? ?? 'Moral Stories',
         coverEmoji: j['coverEmoji'] as String? ?? '📖',
+        coverImage: j['coverImage'] as String?,
         music: MusicTrack.parse(j['music'] as String?),
         moral: j['moral'] as String? ?? '',
         reward: StoryReward.fromJson(j['reward'] as Map<String, dynamic>?),
